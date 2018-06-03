@@ -1,16 +1,29 @@
 package com.holahmeds.ledger
 
+import android.content.res.Resources
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import com.google.android.flexbox.FlexboxLayout
 
-class Transaction(val amount: Int, val category: String)
+import kotlinx.android.synthetic.main.transaction_card.view.*
+import java.text.DateFormat
+import java.util.*
+
+fun DPToPixel(size: Int, resources: Resources): Int {
+    return (size * resources.displayMetrics.density).toInt()
+}
+
+class Transaction(val date: Date, val amount: Long, val category: String, val transactee: String?, val tags: List<String>)
 
 class TransactionViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-    val amount: TextView = view.findViewById(R.id.amount)
-    val category: TextView = view.findViewById(R.id.category)
+    val date: TextView = view.date
+    val amount: TextView = view.amount
+    val category: TextView = view.category
+    val transactee: TextView = view.transactee
+    val tags: FlexboxLayout = view.tag_list
 }
 
 class TransactionAdapter(private var data: Array<Transaction>): RecyclerView.Adapter<TransactionViewHolder>() {
@@ -20,8 +33,45 @@ class TransactionAdapter(private var data: Array<Transaction>): RecyclerView.Ada
     }
 
     override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
-        holder.amount.text = data[position].amount.toString()
-        holder.category.text = data[position].category
+        val transaction = data[position]
+
+        val formater = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.MEDIUM)
+        holder.date.text = formater.format(transaction.date)
+
+        holder.amount.text = transaction.amount.toString()
+
+        holder.category.text = transaction.category
+
+        holder.transactee.run {
+            if (transaction.transactee != null) {
+                visibility = View.VISIBLE
+                text = transaction.transactee
+            } else {
+                visibility = View.GONE
+            }
+        }
+
+        holder.tags.run {
+            removeAllViews()
+
+            val tagLayoutParams = FlexboxLayout.LayoutParams(FlexboxLayout.LayoutParams.WRAP_CONTENT, FlexboxLayout.LayoutParams.WRAP_CONTENT)
+            val margin = DPToPixel(4, resources)
+            tagLayoutParams.setMargins(margin, margin, margin, margin)
+
+            val padding = DPToPixel(4, resources)
+
+            val borderedBackground = context.resources.getDrawable(R.drawable.rect)
+
+            for (t in transaction.tags) {
+                val newTag = TextView(context).apply {
+                    layoutParams = tagLayoutParams
+                    background = borderedBackground
+                    setPadding(padding, padding, padding, padding)
+                    text = t
+                }
+                holder.tags.addView(newTag)
+            }
+        }
     }
 
     override fun getItemCount() = data.size
