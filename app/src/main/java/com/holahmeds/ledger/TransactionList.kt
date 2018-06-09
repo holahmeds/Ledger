@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import java.time.LocalDate
 import java.util.*
 
 // TODO: replace
@@ -14,7 +15,7 @@ fun createDummyData(): Array<Transaction> {
     val transactions = ArrayList<Transaction>()
     for (i in 0..20) {
         val transaction = Transaction(
-                Date(),
+                LocalDate.now(),
                 (Math.random() * 1000).toLong(),
                 "Category " + i,
                 if (Math.random() > 0.5) { null } else { "Transactee " + i },

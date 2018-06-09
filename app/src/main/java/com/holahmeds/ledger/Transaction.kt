@@ -7,16 +7,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import com.google.android.flexbox.FlexboxLayout
-
 import kotlinx.android.synthetic.main.transaction_card.view.*
-import java.text.DateFormat
-import java.util.*
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 fun DPToPixel(size: Int, resources: Resources): Int {
     return (size * resources.displayMetrics.density).toInt()
 }
 
-class Transaction(val date: Date, val amount: Long, val category: String, val transactee: String?, val tags: List<String>)
+class Transaction(val date: LocalDate, val amount: Long, val category: String, val transactee: String?, val tags: List<String>)
 
 class TransactionViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     val date: TextView = view.date
@@ -35,8 +34,7 @@ class TransactionAdapter(private var data: Array<Transaction>): RecyclerView.Ada
     override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
         val transaction = data[position]
 
-        val formater = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.MEDIUM)
-        holder.date.text = formater.format(transaction.date)
+        holder.date.text = transaction.date.format(DateTimeFormatter.ISO_LOCAL_DATE)
 
         holder.amount.text = transaction.amount.toString()
 

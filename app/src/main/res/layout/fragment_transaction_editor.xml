@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".TransactionEditor">
+
+    <EditText
+        android:id="@+id/date_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/date_label"
+        android:inputType="date"
+        android:focusable="false" />
+
+    <EditText
+        android:id="@+id/amount_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/amount_label"
+        android:inputType="numberDecimal" />
+
+    <EditText
+        android:id="@+id/category_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/category_label"
+        android:inputType="textPersonName" />
+
+    <EditText
+        android:id="@+id/transactee_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/transactee_label"
+        android:inputType="textPersonName" />
+
+    <Button
+        android:id="@+id/save_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/save_button_label" />
+</LinearLayout>

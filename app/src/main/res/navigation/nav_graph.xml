@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@id/transactionList">
+
+    <fragment
+        android:id="@+id/transactionList"
+        android:name="com.holahmeds.ledger.TransactionList"
+        android:label="fragment_transaction_list"
+        tools:layout="@layout/fragment_transaction_list" />
+    <fragment
+        android:id="@+id/transactionEditor"
+        android:name="com.holahmeds.ledger.TransactionEditor"
+        android:label="fragment_transaction_editor"
+        tools:layout="@layout/fragment_transaction_editor" >
+    </fragment>
+    <!--<action android:id="@+id/action_global_transactionEditor" app:destination="@id/transactionEditor" />-->
+</navigation>
