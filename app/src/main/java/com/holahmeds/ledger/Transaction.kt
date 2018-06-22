@@ -83,11 +83,7 @@ class TransactionViewHolder(val transactionView: View): RecyclerView.ViewHolder(
     val tags: FlexboxLayout = transactionView.tag_list
 }
 
-class TransactionAdapter(private var data: List<Transaction>, private val itemLongClickListener: TransactionLongClickListener): RecyclerView.Adapter<TransactionViewHolder>() {
-    interface TransactionLongClickListener {
-        fun onLongClick(transaction: Transaction)
-    }
-
+class TransactionAdapter(private var data: List<Transaction>, private val onItemLongClick: (Transaction) -> Unit): RecyclerView.Adapter<TransactionViewHolder>() {
     fun setData(newData: List<Transaction>) {
         data = newData
         notifyDataSetChanged()
@@ -117,7 +113,7 @@ class TransactionAdapter(private var data: List<Transaction>, private val itemLo
         }
 
         holder.transactionView.setOnLongClickListener({
-            itemLongClickListener.onLongClick(transaction)
+            onItemLongClick(transaction)
             true
         })
 
