@@ -3,6 +3,7 @@ package com.holahmeds.ledger
 import android.app.DatePickerDialog
 import android.os.AsyncTask
 import android.os.Bundle
+import android.support.design.chip.Chip
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -45,6 +46,20 @@ class TransactionEditor : Fragment() {
                     date.monthValue - 1,
                     date.dayOfMonth
             ).show()
+        }
+
+        add_tag.setOnClickListener {
+            val newTagDialog = AddTagDialogFragment({tag ->
+                val chip = Chip(context)
+                chip.chipText = tag
+                chip.isCloseIconEnabled = true
+                chip.setOnCloseIconClickListener {view ->
+                    tag_chipgroup.removeView(view)
+                }
+
+                tag_chipgroup.addView(chip, 0)
+            })
+            newTagDialog.show(fragmentManager, "addtag")
         }
 
         save_button.setOnClickListener {

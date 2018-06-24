@@ -6,4 +6,8 @@
     <string name="category_label">Category</string>
     <string name="transactee_label">Transactee</string>
     <string name="save_button_label">Save</string>
+    <string name="tags">Tags</string>
+    <string name="add">Add</string>
+    <string name="add_tag">Add tag</string>
+    <string name="cancel">Cancel</string>
 </resources>
