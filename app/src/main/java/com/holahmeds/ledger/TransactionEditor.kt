@@ -5,6 +5,8 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.support.design.chip.Chip
 import android.support.v4.app.Fragment
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -48,6 +50,8 @@ class TransactionEditor : Fragment() {
             ).show()
         }
 
+        addErrorListeners()
+
         add_tag.setOnClickListener {
             val newTagDialog = AddTagDialogFragment({tag ->
                 val chip = Chip(context)
@@ -63,8 +67,9 @@ class TransactionEditor : Fragment() {
         }
 
         save_button.setOnClickListener {
-            if (!validateData()) {
+            if (inputHasErrors()) {
                 Toast.makeText(context, "Invalid data", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
             }
 
             val id = transaction?.id ?: 0
@@ -86,11 +91,44 @@ class TransactionEditor : Fragment() {
         }
     }
 
-    private fun validateData(): Boolean {
+    private fun updateCategoryError() {
+        category_layout.error = if (category_view.text.isNullOrBlank()) {
+            getString(R.string.category_error)
+        } else {
+            null
+        }
+    }
+    private fun updateAmountError() {
         val amountRegex = Regex("\\d+(\\.\\d{0,2})?")
 
-        return amount_view.text.toString().matches(amountRegex)
-                && !category_view.text.isNullOrEmpty()
+        amount_layout.error = if (!amount_view.text.toString().matches(amountRegex)) {
+            getString(R.string.amount_error)
+        } else {
+            null
+        }
+    }
+
+    private fun inputHasErrors(): Boolean {
+        updateCategoryError()
+        updateAmountError()
+        return amount_layout.error != null || category_layout.error != null
+    }
+
+    private fun addErrorListeners() {
+        category_view.addTextChangedListener(object : TextWatcher {
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun afterTextChanged(text: Editable?) {
+                updateCategoryError()
+            }
+        })
+        amount_view.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun afterTextChanged(text: Editable?) {
+                updateAmountError()
+            }
+        })
     }
 
     private fun updateDateView(date: LocalDate) {
