@@ -71,7 +71,7 @@ class TransactionEditor : Fragment() {
             val amount = amount_view.text.toString().replace(".", "").toLong()
             val category = category_view.text.toString()
             val transactee = transactee_view.text.let {
-                if (it.isBlank()) {
+                if (it.isNullOrBlank()) {
                     null
                 } else {
                     it.toString()
@@ -90,7 +90,7 @@ class TransactionEditor : Fragment() {
         val amountRegex = Regex("\\d+(\\.\\d{0,2})?")
 
         return amount_view.text.toString().matches(amountRegex)
-                && category_view.text.isNotEmpty()
+                && !category_view.text.isNullOrEmpty()
     }
 
     private fun updateDateView(date: LocalDate) {
