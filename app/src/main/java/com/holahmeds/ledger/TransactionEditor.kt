@@ -1,6 +1,7 @@
 package com.holahmeds.ledger
 
 import android.app.DatePickerDialog
+import android.arch.lifecycle.Observer
 import android.os.AsyncTask
 import android.os.Bundle
 import android.support.design.chip.Chip
@@ -18,6 +19,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 class TransactionEditor : Fragment() {
+    val tags: MutableList<String> = mutableListOf()
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
@@ -34,6 +37,15 @@ class TransactionEditor : Fragment() {
             amount_view.setText(transaction.amount.toString())
             category_view.setText(transaction.category)
             transactee_view.setText(transaction.transactee)
+
+            val observer = Observer<List<String>> {tags ->
+                if (tags != null) {
+                    for (t in tags) {
+                        addTag(t)
+                    }
+                }
+            }
+            LedgerDatabase.getInstance(context!!).transactionTagDao().getTagsForTransaction(transaction.id).observe(this, observer)
         }
 
         updateDateView(date)
@@ -54,14 +66,7 @@ class TransactionEditor : Fragment() {
 
         add_tag.setOnClickListener {
             val newTagDialog = AddTagDialogFragment({tag ->
-                val chip = Chip(context)
-                chip.chipText = tag
-                chip.isCloseIconEnabled = true
-                chip.setOnCloseIconClickListener {view ->
-                    tag_chipgroup.removeView(view)
-                }
-
-                tag_chipgroup.addView(chip, 0)
+                addTag(tag)
             })
             newTagDialog.show(fragmentManager, "addtag")
         }
@@ -84,11 +89,24 @@ class TransactionEditor : Fragment() {
             }
 
             val newTransaction = Transaction(id, date, amount, category, transactee)
-            val transactionDao = LedgerDatabase.getInstance(context!!).transactionDao()
-            UpdateTransaction(transactionDao, newTransaction).execute()
+            val database = LedgerDatabase.getInstance(context!!)
+            UpdateTransaction(database, newTransaction, tags).execute()
 
             NavHostFragment.findNavController(this).popBackStack()
         }
+    }
+
+    private fun addTag(tag: String) {
+        val chip = Chip(context)
+        chip.chipText = tag
+        chip.isCloseIconEnabled = true
+        chip.setOnCloseIconClickListener { view ->
+            tag_chipgroup.removeView(view)
+            tags.remove(tag)
+        }
+
+        tag_chipgroup.addView(chip, 0)
+        tags.add(tag)
     }
 
     private fun updateCategoryError() {
@@ -136,10 +154,29 @@ class TransactionEditor : Fragment() {
     }
 
     companion object {
-        class UpdateTransaction(private val dao: TransactionDao, private val transaction: Transaction): AsyncTask<Void, Void, Void>() {
-            override fun doInBackground(vararg params: Void?): Void? {
-                dao.add(transaction)
-                return null
+        class UpdateTransaction(private val database: LedgerDatabase, private val transaction: Transaction, val tags: List<String>): AsyncTask<Void, Void, Unit>() {
+            override fun doInBackground(vararg params: Void?) {
+                val transactionDao = database.transactionDao()
+                val tagDao = database.tagDao()
+                val transactionTagDao = database.transactionTagDao()
+
+                transactionDao.add(transaction)
+
+                val oldTags = transactionTagDao.getTagsForTransactionSync(transaction.id)
+                for (t in oldTags) {
+                    if (!tags.contains(t)) {
+                        transactionTagDao.delete(TransactionTag(transaction.id, tagDao.getTagId(t)))
+                    }
+                }
+
+                for (t in tags) {
+                    if (!oldTags.contains(t)) {
+                        tagDao.add(Tag(0, t))
+
+                        val tagId = tagDao.getTagId(t)
+                        transactionTagDao.add(TransactionTag(transaction.id, tagId))
+                    }
+                }
             }
         }
     }
