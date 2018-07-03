@@ -13,13 +13,15 @@ class Transaction: Parcelable {
     val amount: Long
     val category: String
     val transactee: String?
+    val note: String?
 
-    constructor(id:Int, date: LocalDate, amount: Long, category: String, transactee: String?) {
+    constructor(id: Int, date: LocalDate, amount: Long, category: String, transactee: String?, note: String?) {
         this.id = id
         this.date = date
         this.amount = amount
         this.category = category
         this.transactee = transactee
+        this.note = note
     }
 
     constructor(parcel: Parcel) {
@@ -28,6 +30,7 @@ class Transaction: Parcelable {
         this.amount = parcel.readLong()
         this.category = parcel.readString()
         this.transactee = parcel.readString()
+        this.note = parcel.readString()
     }
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(id)
@@ -39,6 +42,7 @@ class Transaction: Parcelable {
         parcel.writeLong(amount)
         parcel.writeString(category)
         parcel.writeString(transactee)
+        parcel.writeString(note)
     }
 
     override fun describeContents(): Int {

@@ -40,6 +40,7 @@ class TransactionEditor : Fragment() {
             amount_view.setText(transaction.amount.toString())
             category_view.setText(transaction.category)
             transactee_view.setText(transaction.transactee)
+            note_view.setText(transaction.note)
 
             val observer = Observer<List<String>> {tags ->
                 if (tags != null) {
@@ -90,8 +91,15 @@ class TransactionEditor : Fragment() {
                     it.toString()
                 }
             }
+            val note = note_view.text.let {
+                if (it.isNullOrBlank()) {
+                    null
+                } else {
+                    it.toString()
+                }
+            }
 
-            val newTransaction = Transaction(id, date, amount, category, transactee)
+            val newTransaction = Transaction(id, date, amount, category, transactee, note)
             val database = LedgerDatabase.getInstance(context!!)
             UpdateTransaction(database, newTransaction, tags).execute()
 

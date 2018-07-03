@@ -2,14 +2,14 @@ package com.holahmeds.ledger
 
 import android.arch.persistence.db.SupportSQLiteDatabase
 import android.arch.persistence.room.*
-import android.arch.persistence.room.Transaction
 import android.arch.persistence.room.migration.Migration
 import android.content.Context
 import com.holahmeds.ledger.entities.*
+import com.holahmeds.ledger.entities.Transaction
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@Database(entities = [Transaction::class, Tag::class, TransactionTag::class], version = 2)
+@Database(entities = [Transaction::class, Tag::class, TransactionTag::class], version = 3)
 @TypeConverters(Converters::class)
 abstract class LedgerDatabase: RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
@@ -24,10 +24,15 @@ abstract class LedgerDatabase: RoomDatabase() {
                 database.execSQL("CREATE  INDEX `index_TransactionTag_tagId` ON `TransactionTag` (`tagId`)")
             }
         }
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE 'transaction_table' ADD COLUMN note TEXT")
+            }
+        }
 
         fun getInstance(context: Context): LedgerDatabase {
             return Room.databaseBuilder(context, LedgerDatabase::class.java, "transaction-database")
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
         }
     }
