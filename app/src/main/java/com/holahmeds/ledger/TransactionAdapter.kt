@@ -5,17 +5,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import com.holahmeds.ledger.entities.Transaction
 import kotlinx.android.synthetic.main.transaction_card.view.*
 import java.time.format.DateTimeFormatter
 
-class TransactionViewHolder(val transactionView: View): RecyclerView.ViewHolder(transactionView) {
-    val date: TextView = transactionView.date
-    val amount: TextView = transactionView.amount
-    val category: TextView = transactionView.category
-    val transactee: TextView = transactionView.transactee
-}
+class TransactionAdapter(private var data: List<Transaction>, private val onItemLongClick: (Transaction) -> Unit): RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder>() {
+    class TransactionViewHolder(val transactionView: View): RecyclerView.ViewHolder(transactionView) {
+        val date: TextView = transactionView.date
+        val amount: TextView = transactionView.amount
+        val category: TextView = transactionView.category
+        val transactee: TextView = transactionView.transactee
+    }
 
-class TransactionAdapter(private var data: List<Transaction>, private val onItemLongClick: (Transaction) -> Unit): RecyclerView.Adapter<TransactionViewHolder>() {
     fun setData(newData: List<Transaction>) {
         data = newData
         notifyDataSetChanged()

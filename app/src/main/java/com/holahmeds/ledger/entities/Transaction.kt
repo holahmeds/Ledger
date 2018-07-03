@@ -1,4 +1,4 @@
-package com.holahmeds.ledger
+package com.holahmeds.ledger.entities
 
 import android.arch.lifecycle.LiveData
 import android.arch.persistence.room.*

@@ -14,6 +14,9 @@ import android.view.ViewGroup
 import android.widget.DatePicker
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
+import com.holahmeds.ledger.entities.Tag
+import com.holahmeds.ledger.entities.Transaction
+import com.holahmeds.ledger.entities.TransactionTag
 import kotlinx.android.synthetic.main.fragment_transaction_editor.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.NavHostFragment
+import com.holahmeds.ledger.entities.Transaction
 import kotlinx.android.synthetic.main.fragment_transaction_list.view.*
 
 class TransactionList : Fragment() {
