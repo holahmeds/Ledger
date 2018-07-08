@@ -1,5 +1,8 @@
 package com.holahmeds.ledger
 
+import android.arch.lifecycle.Observer
+import android.support.design.chip.Chip
+import android.support.design.chip.ChipGroup
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -9,16 +12,28 @@ import com.holahmeds.ledger.entities.Transaction
 import kotlinx.android.synthetic.main.transaction_card.view.*
 import java.time.format.DateTimeFormatter
 
-class TransactionAdapter(private var data: List<Transaction>, private val onItemLongClick: (Transaction) -> Unit): RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder>() {
+class TransactionAdapter(private var transactions: List<Transaction>,
+                         private val onItemLongClick: (Transaction) -> Unit)
+    : RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder>() {
+
+    private var tagLists: Array<List<String>> = emptyArray()
+
     class TransactionViewHolder(val transactionView: View): RecyclerView.ViewHolder(transactionView) {
         val date: TextView = transactionView.date
         val amount: TextView = transactionView.amount
         val category: TextView = transactionView.category
         val transactee: TextView = transactionView.transactee
+        val note: TextView = transactionView.note
+        val tags: ChipGroup = transactionView.tags
     }
 
-    fun setData(newData: List<Transaction>) {
-        data = newData
+    fun setData(newTransactions: List<Transaction>) {
+        transactions = newTransactions
+        tagLists = Array(transactions.size, { emptyList<String>() })
+        notifyDataSetChanged()
+    }
+    fun setTags(transactionIndex:Int, tags: List<String>) {
+        tagLists[transactionIndex] = tags
         notifyDataSetChanged()
     }
 
@@ -28,7 +43,8 @@ class TransactionAdapter(private var data: List<Transaction>, private val onItem
     }
 
     override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
-        val transaction = data[position]
+        val transaction = transactions[position]
+        val tags = tagLists[position]
 
         holder.date.text = transaction.date.format(DateTimeFormatter.ISO_LOCAL_DATE)
 
@@ -45,11 +61,27 @@ class TransactionAdapter(private var data: List<Transaction>, private val onItem
             }
         }
 
+        holder.note.run {
+            if (transaction.note != null) {
+                visibility = View.VISIBLE
+                text = transaction.note
+            } else {
+                visibility = View.GONE
+            }
+        }
+
+        holder.tags.removeAllViews()
+        for (t in tags) {
+            val chip = Chip(holder.tags.context)
+            chip.chipText = t
+            holder.tags.addView(chip)
+        }
+
         holder.transactionView.setOnLongClickListener({
             onItemLongClick(transaction)
             true
         })
     }
 
-    override fun getItemCount() = data.size
+    override fun getItemCount() = transactions.size
 }
