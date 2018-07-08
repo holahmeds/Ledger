@@ -1,6 +1,5 @@
 package com.holahmeds.ledger
 
-import android.arch.lifecycle.Observer
 import android.support.design.chip.Chip
 import android.support.design.chip.ChipGroup
 import android.support.v7.widget.RecyclerView
@@ -48,7 +47,7 @@ class TransactionAdapter(private var transactions: List<Transaction>,
 
         holder.date.text = transaction.date.format(DateTimeFormatter.ISO_LOCAL_DATE)
 
-        holder.amount.text = transaction.amount.toString()
+        holder.amount.text = Transaction.amountToString(transaction.amount)
 
         holder.category.text = transaction.category
 

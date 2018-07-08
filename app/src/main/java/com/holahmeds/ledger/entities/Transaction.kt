@@ -49,13 +49,25 @@ class Transaction: Parcelable {
         return 0
     }
 
-    companion object CREATOR : Parcelable.Creator<Transaction> {
-        override fun createFromParcel(parcel: Parcel): Transaction {
-            return Transaction(parcel)
+    companion object {
+        @JvmField
+        @Suppress("unused")
+        val CREATOR = object : Parcelable.Creator<Transaction> {
+            override fun createFromParcel(parcel: Parcel): Transaction {
+                return Transaction(parcel)
+            }
+
+            override fun newArray(size: Int): Array<Transaction?> {
+                return arrayOfNulls(size)
+            }
         }
 
-        override fun newArray(size: Int): Array<Transaction?> {
-            return arrayOfNulls(size)
+        fun amountToString(amount: Long): String {
+            val string = amount.toString()
+            return string.substring(0, (string.length - 2)) + '.' + string.substring((string.length - 2), string.length)
+        }
+        fun stringToAmount(string: String): Long {
+            return string.replace(".", "").toLong()
         }
     }
 }

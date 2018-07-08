@@ -14,9 +14,7 @@ import android.view.ViewGroup
 import android.widget.DatePicker
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
-import com.holahmeds.ledger.entities.Tag
-import com.holahmeds.ledger.entities.Transaction
-import com.holahmeds.ledger.entities.TransactionTag
+import com.holahmeds.ledger.entities.*
 import kotlinx.android.synthetic.main.fragment_transaction_editor.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -37,7 +35,7 @@ class TransactionEditor : Fragment() {
 
         var date: LocalDate = transaction?.date ?: LocalDate.now()
         if (transaction != null) {
-            amount_view.setText(transaction.amount.toString())
+            amount_view.setText(Transaction.amountToString(transaction.amount))
             category_view.setText(transaction.category)
             transactee_view.setText(transaction.transactee)
             note_view.setText(transaction.note)
@@ -82,7 +80,7 @@ class TransactionEditor : Fragment() {
             }
 
             val id = transaction?.id ?: 0
-            val amount = amount_view.text.toString().replace(".", "").toLong()
+            val amount = Transaction.stringToAmount(amount_view.text.toString())
             val category = category_view.text.toString()
             val transactee = transactee_view.text.let {
                 if (it.isNullOrBlank()) {
