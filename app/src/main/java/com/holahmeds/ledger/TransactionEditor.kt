@@ -11,6 +11,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.DatePicker
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
@@ -31,6 +32,7 @@ class TransactionEditor : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val database = LedgerDatabase.getInstance(context!!)
         val transaction = arguments?.getParcelable<Transaction>("TRANSACTION")
 
         var date: LocalDate = transaction?.date ?: LocalDate.now()
@@ -47,7 +49,7 @@ class TransactionEditor : Fragment() {
                     }
                 }
             }
-            LedgerDatabase.getInstance(context!!).transactionTagDao().getTagsForTransaction(transaction.id).observe(this, observer)
+            database.transactionTagDao().getTagsForTransaction(transaction.id).observe(this, observer)
         }
 
         updateDateView(date)
@@ -64,12 +66,20 @@ class TransactionEditor : Fragment() {
             ).show()
         }
 
+        database.transactionDao().getAllCategories().observe(this, Observer { categories ->
+            category_view.setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, categories))
+        })
+        database.transactionDao().getAllTransactees().observe(this, Observer { transactees ->
+            transactee_view.setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, transactees))
+        })
+
         addErrorListeners()
 
         add_tag.setOnClickListener {
             val newTagDialog = AddTagDialogFragment({tag ->
                 addTag(tag)
             })
+            newTagDialog.tags = database.tagDao().getAll()
             newTagDialog.show(fragmentManager, "addtag")
         }
 
@@ -98,7 +108,6 @@ class TransactionEditor : Fragment() {
             }
 
             val newTransaction = Transaction(id, date, amount, category, transactee, note)
-            val database = LedgerDatabase.getInstance(context!!)
             UpdateTransaction(database, newTransaction, tags).execute()
 
             NavHostFragment.findNavController(this).popBackStack()

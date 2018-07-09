@@ -40,12 +40,13 @@
             android:layout_marginEnd="8dp"
             app:errorEnabled="true">
 
-            <android.support.design.widget.TextInputEditText
+            <AutoCompleteTextView
                 android:id="@+id/category_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/category_label"
-                android:inputType="textPersonName" />
+                android:inputType="textPersonName"
+                android:padding="12dp" />
         </android.support.design.widget.TextInputLayout>
 
         <android.support.design.widget.TextInputLayout
@@ -57,12 +58,13 @@
             android:layout_marginEnd="8dp"
             app:errorEnabled="true">
 
-            <android.support.design.widget.TextInputEditText
+            <AutoCompleteTextView
                 android:id="@+id/transactee_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/transactee_label"
-                android:inputType="textPersonName" />
+                android:inputType="textPersonName"
+                android:padding="12dp" />
         </android.support.design.widget.TextInputLayout>
 
         <android.support.design.widget.TextInputLayout
