@@ -74,7 +74,7 @@ class Transaction: Parcelable {
 
 @Dao
 interface TransactionDao {
-    @Query("SELECT * FROM transaction_table")
+    @Query("SELECT * FROM transaction_table ORDER BY date")
     fun getAll(): LiveData<List<Transaction>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
