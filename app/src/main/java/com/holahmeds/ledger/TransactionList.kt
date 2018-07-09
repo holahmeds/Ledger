@@ -1,10 +1,7 @@
 package com.holahmeds.ledger
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModel
-import android.content.Context
+import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -21,12 +18,27 @@ class TransactionList : Fragment() {
                               savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_transaction_list, container, false)
 
-        val transactionAdapter = TransactionAdapter(emptyList(), { transaction: Transaction ->
-            val args = Bundle()
-            args.putParcelable("TRANSACTION", transaction)
+        val database = LedgerDatabase.getInstance(context!!)
 
-            val navController = NavHostFragment.findNavController(this@TransactionList)
-            navController.navigate(R.id.transactionEditor, args)
+        val transactionAdapter = TransactionAdapter(emptyList(), { transaction: Transaction ->
+            val dialog = TransactionListMenu()
+            dialog.setListener(object : TransactionListMenu.ItemSelectedListener {
+                override fun onEditSelected() {
+                    Log.d("TransactionList", "onEditSelected")
+
+                    val args = Bundle()
+                    args.putParcelable("TRANSACTION", transaction)
+
+                    val navController = NavHostFragment.findNavController(this@TransactionList)
+                    navController.navigate(R.id.transactionEditor, args)
+                }
+
+                override fun onDeleteSelected() {
+                    DeleteTransaction(database).execute(transaction)
+                }
+            })
+
+            dialog.show(fragmentManager, "transactionlistmenu")
         })
 
         // Set the adapter
@@ -35,8 +47,6 @@ class TransactionList : Fragment() {
             layoutManager =  LinearLayoutManager(context)
             adapter = transactionAdapter
         }
-
-        val database = LedgerDatabase.getInstance(context!!)
 
         val liveTransactions = database.transactionDao().getAll()
         liveTransactions.observe(this, Observer { transactions ->
@@ -62,5 +72,13 @@ class TransactionList : Fragment() {
         }
 
         return view
+    }
+
+    companion object {
+        class DeleteTransaction(private val database: LedgerDatabase) : AsyncTask<Transaction, Unit, Unit>() {
+            override fun doInBackground(vararg transactions: Transaction?) {
+                database.transactionDao().delete(transactions)
+            }
+        }
     }
 }

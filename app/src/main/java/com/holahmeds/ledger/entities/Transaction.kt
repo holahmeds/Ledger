@@ -82,4 +82,7 @@ interface TransactionDao {
 
     @Insert
     fun addAll(transactions: Collection<Transaction>)
+
+    @Delete
+    fun delete(transaction: Array<out Transaction?>)
 }
