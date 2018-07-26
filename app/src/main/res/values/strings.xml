@@ -13,4 +13,6 @@
     <string name="category_error">Category needs to be set</string>
     <string name="amount_error">Invalid format</string>
     <string name="note">Note</string>
+    <string name="income">Income</string>
+    <string name="expense">Expense</string>
 </resources>

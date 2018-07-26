@@ -37,7 +37,11 @@ class TransactionEditor : Fragment() {
 
         var date: LocalDate = transaction?.date ?: LocalDate.now()
         if (transaction != null) {
-            amount_view.setText(Transaction.amountToString(transaction.amount))
+            if (transaction.amount > 0) {
+                chip_income.isChecked = true
+            }
+            amount_view.setText(Transaction.amountToString(transaction.amount).replace("-", ""))
+
             category_view.setText(transaction.category)
             transactee_view.setText(transaction.transactee)
             note_view.setText(transaction.note)
@@ -90,7 +94,7 @@ class TransactionEditor : Fragment() {
             }
 
             val id = transaction?.id ?: 0
-            val amount = Transaction.stringToAmount(amount_view.text.toString())
+            val amount = Transaction.stringToAmount(amount_view.text.toString()) * if (chip_expense.isChecked) { -1 } else { 1 }
             val category = category_view.text.toString()
             val transactee = transactee_view.text.let {
                 if (it.isNullOrBlank()) {
