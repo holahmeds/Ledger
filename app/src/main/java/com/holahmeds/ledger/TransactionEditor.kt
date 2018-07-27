@@ -19,6 +19,7 @@ import com.holahmeds.ledger.entities.*
 import kotlinx.android.synthetic.main.fragment_transaction_editor.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.stream.Collectors
 
 class TransactionEditor : Fragment() {
     val tags: MutableList<String> = mutableListOf()
@@ -185,11 +186,12 @@ class TransactionEditor : Fragment() {
                 transactionDao.add(transaction)
 
                 val oldTags = transactionTagDao.getTagsForTransactionSync(transaction.id)
-                for (t in oldTags) {
-                    if (!tags.contains(t)) {
-                        transactionTagDao.delete(TransactionTag(transaction.id, tagDao.getTagId(t)))
-                    }
-                }
+
+                val removedTags = oldTags.stream()
+                        .filter { t -> !tags.contains(t) }
+                        .map { t -> tagDao.getTagId(t) }
+                        .collect(Collectors.toList())
+                transactionTagDao.delete(transaction.id, removedTags)
 
                 for (t in tags) {
                     if (!oldTags.contains(t)) {

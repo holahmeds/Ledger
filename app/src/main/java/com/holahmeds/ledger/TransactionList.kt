@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import androidx.navigation.fragment.NavHostFragment
 import com.holahmeds.ledger.entities.Transaction
 import kotlinx.android.synthetic.main.fragment_transaction_list.view.*
+import java.util.stream.Collectors
 
 class TransactionList : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -76,8 +77,14 @@ class TransactionList : Fragment() {
 
     companion object {
         class DeleteTransaction(private val database: LedgerDatabase) : AsyncTask<Transaction, Unit, Unit>() {
-            override fun doInBackground(vararg transactions: Transaction?) {
-                database.transactionDao().delete(transactions)
+            override fun doInBackground(vararg transactions: Transaction) {
+                val transactionList = transactions.asList()
+                val transactionIds = transactionList.stream()
+                        .map { t -> t.id }
+                        .collect(Collectors.toList())
+
+                database.transactionTagDao().delete(transactionIds)
+                database.transactionDao().delete(transactionList)
             }
         }
     }

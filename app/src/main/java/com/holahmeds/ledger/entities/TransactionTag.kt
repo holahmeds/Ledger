@@ -26,4 +26,10 @@ interface TransactionTagDao {
 
     @Delete
     fun delete(transactionTag: TransactionTag)
+
+    @Query("DELETE FROM transactiontag WHERE transactionId IN(:transactionIds)")
+    fun delete(transactionIds: List<Int>)
+
+    @Query("DELETE FROM transactiontag WHERE transactionId=:transactionId AND tagId IN(:tagIds)")
+    fun delete(transactionId: Int, tagIds: List<Int>)
 }
