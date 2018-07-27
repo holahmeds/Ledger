@@ -67,7 +67,12 @@ class Transaction: Parcelable {
             return string.substring(0, (string.length - 2)) + '.' + string.substring((string.length - 2), string.length)
         }
         fun stringToAmount(string: String): Long {
-            return string.replace(".", "").toLong()
+            return if (string.contains('.')) {
+                val s = string.split(".")
+                s[0].toLong() * 100 + s[1].toLong()
+            } else {
+                string.toLong() * 100
+            }
         }
     }
 }
