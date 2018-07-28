@@ -85,7 +85,7 @@ interface TransactionDao {
     @Query("SELECT DISTINCT category FROM transaction_table")
     fun getAllCategories(): LiveData<List<String>>
 
-    @Query("SELECT DISTINCT transactee FROM transaction_table")
+    @Query("SELECT DISTINCT transactee FROM transaction_table WHERE transactee IS NOT NULL")
     fun getAllTransactees(): LiveData<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
