@@ -5,6 +5,7 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -63,6 +64,16 @@ class TransactionList : Fragment() {
                         transactionAdapter.setTags(i, tags)
                     }
                 })
+            }
+        })
+
+        list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (dy > 0) {
+                    view.new_transaction_fab.hide()
+                } else if (dy < 0) {
+                    view.new_transaction_fab.show()
+                }
             }
         })
 
