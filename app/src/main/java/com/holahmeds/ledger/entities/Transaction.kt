@@ -79,7 +79,7 @@ class Transaction: Parcelable {
 
 @Dao
 interface TransactionDao {
-    @Query("SELECT * FROM transaction_table ORDER BY date DESC")
+    @Query("SELECT * FROM transaction_table ORDER BY date DESC, id DESC")
     fun getAll(): LiveData<List<Transaction>>
 
     @Query("SELECT DISTINCT category FROM transaction_table")
