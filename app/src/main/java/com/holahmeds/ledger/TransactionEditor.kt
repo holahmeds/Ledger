@@ -15,7 +15,9 @@ import android.widget.ArrayAdapter
 import android.widget.DatePicker
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
-import com.holahmeds.ledger.entities.*
+import com.holahmeds.ledger.entities.Tag
+import com.holahmeds.ledger.entities.Transaction
+import com.holahmeds.ledger.entities.TransactionTag
 import kotlinx.android.synthetic.main.fragment_transaction_editor.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -115,6 +117,7 @@ class TransactionEditor : Fragment() {
             val newTransaction = Transaction(id, date, amount, category, transactee, note)
             UpdateTransaction(database, newTransaction, tags).execute()
 
+            hideKeyboard(activity!!)
             NavHostFragment.findNavController(this).popBackStack()
         }
     }
