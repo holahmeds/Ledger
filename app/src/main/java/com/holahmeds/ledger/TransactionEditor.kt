@@ -61,36 +61,44 @@ class TransactionEditor : Fragment() {
 
         updateDateView(date)
         date_view.setOnClickListener {
-            DatePickerDialog(
-                    context,
-                    { _: DatePicker, year: Int, month: Int, day: Int ->
-                        date = LocalDate.of(year, month + 1, day)
-                        updateDateView(date)
-                    },
-                    date.year,
-                    date.monthValue - 1,
-                    date.dayOfMonth
-            ).show()
+            context?.let { context ->
+                DatePickerDialog(
+                        context,
+                        { _: DatePicker, year: Int, month: Int, day: Int ->
+                            date = LocalDate.of(year, month + 1, day)
+                            updateDateView(date)
+                        },
+                        date.year,
+                        date.monthValue - 1,
+                        date.dayOfMonth
+                ).show()
+            }
         }
 
-        database.transactionDao().getAllCategories().observe(this, Observer { categories ->
-            category_view.setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, categories))
-        })
-        database.transactionDao().getAllTransactees().observe(this, Observer { transactees ->
-            transactee_view.setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, transactees))
-        })
+        context?.let { context ->
+            database.transactionDao().getAllCategories().observe(this, Observer { categories ->
+                categories?.let {
+                    category_view.setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, categories))
+                }
+            })
+            database.transactionDao().getAllTransactees().observe(this, Observer { transactees ->
+                transactees?.let {
+                    transactee_view.setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, transactees))
+                }
+            })
+        }
 
         addErrorListeners()
 
         add_tag.setOnClickListener {
-            val newTagDialog = AddTagDialogFragment({tag ->
+            val newTagDialog = AddTagDialogFragment { tag ->
                 addTag(tag)
-            })
+            }
             newTagDialog.tags = database.tagDao().getAll()
             newTagDialog.show(fragmentManager, "addtag")
         }
 
-        save_button.setOnClickListener {
+        save_button.setOnClickListener { _ ->
             if (inputHasErrors()) {
                 Toast.makeText(context, "Invalid data", Toast.LENGTH_LONG).show()
                 return@setOnClickListener

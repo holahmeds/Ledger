@@ -20,7 +20,7 @@ class TransactionListMenu : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(activity)
-        builder.setItems(arrayOf("Edit", "Delete"), { _: DialogInterface, i: Int ->
+        builder.setItems(arrayOf("Edit", "Delete")) { _: DialogInterface, i: Int ->
             when (i) {
                 0 -> {
                     listener?.onEditSelected()
@@ -29,7 +29,7 @@ class TransactionListMenu : DialogFragment() {
                     listener?.onDeleteSelected()
                 }
             }
-        })
+        }
 
         return builder.create()
     }

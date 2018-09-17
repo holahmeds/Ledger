@@ -28,7 +28,7 @@ class TransactionAdapter(private var transactions: List<Transaction>,
 
     fun setData(newTransactions: List<Transaction>) {
         transactions = newTransactions
-        tagLists = Array(transactions.size, { emptyList<String>() })
+        tagLists = Array(transactions.size) { emptyList<String>() }
         notifyDataSetChanged()
     }
     fun setTags(transactionIndex:Int, tags: List<String>) {
@@ -76,10 +76,10 @@ class TransactionAdapter(private var transactions: List<Transaction>,
             holder.tags.addView(chip)
         }
 
-        holder.transactionView.setOnLongClickListener({
+        holder.transactionView.setOnLongClickListener {
             onItemLongClick(transaction)
             true
-        })
+        }
     }
 
     override fun getItemCount() = transactions.size

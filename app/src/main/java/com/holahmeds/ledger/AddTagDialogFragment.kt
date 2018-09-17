@@ -19,13 +19,17 @@ class AddTagDialogFragment(val tagAdded: (String) -> Unit) : DialogFragment() {
 
         val inputView = AutoCompleteTextView(context)
         tags?.observe(this, Observer { tags ->
-            inputView.setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, tags))
+            context?.let { context ->
+                tags?.let {
+                    inputView.setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, tags))
+                }
+            }
         })
         dialogBuilder.setView(inputView)
 
-        dialogBuilder.setPositiveButton(R.string.add, { _: DialogInterface, _: Int ->
+        dialogBuilder.setPositiveButton(R.string.add) { _: DialogInterface, _: Int ->
             tagAdded(inputView.text.toString())
-        })
+        }
         dialogBuilder.setNegativeButton(R.string.cancel, null)
 
         return dialogBuilder.create()

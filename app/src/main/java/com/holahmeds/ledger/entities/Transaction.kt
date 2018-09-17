@@ -28,7 +28,7 @@ class Transaction: Parcelable {
         this.id = parcel.readInt()
         this.date = LocalDate.of(parcel.readInt(), parcel.readInt(), parcel.readInt())
         this.amount = parcel.readLong()
-        this.category = parcel.readString()
+        this.category = parcel.readString() ?: ""
         this.transactee = parcel.readString()
         this.note = parcel.readString()
     }

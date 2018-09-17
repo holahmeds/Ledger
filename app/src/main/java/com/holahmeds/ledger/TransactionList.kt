@@ -22,7 +22,7 @@ class TransactionList : Fragment() {
 
         val database = LedgerDatabase.getInstance(context!!)
 
-        val transactionAdapter = TransactionAdapter(emptyList(), { transaction: Transaction ->
+        val transactionAdapter = TransactionAdapter(emptyList()) { transaction: Transaction ->
             val dialog = TransactionListMenu()
             dialog.setListener(object : TransactionListMenu.ItemSelectedListener {
                 override fun onEditSelected() {
@@ -41,7 +41,7 @@ class TransactionList : Fragment() {
             })
 
             dialog.show(fragmentManager, "transactionlistmenu")
-        })
+        }
 
         // Set the adapter
         val list = view.transaction_list
