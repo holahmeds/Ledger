@@ -45,7 +45,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/category_label"
-                android:inputType="textPersonName"
+                android:inputType="textCapWords"
                 android:padding="12dp" />
         </android.support.design.widget.TextInputLayout>
 
@@ -63,7 +63,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/transactee_label"
-                android:inputType="textPersonName"
+                android:inputType="textCapWords"
                 android:padding="12dp" />
         </android.support.design.widget.TextInputLayout>
 
@@ -125,7 +125,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/note"
-                android:inputType="textMultiLine"
+                android:inputType="textMultiLine|textCapSentences"
                 android:lines="3" />
         </android.support.design.widget.TextInputLayout>
 

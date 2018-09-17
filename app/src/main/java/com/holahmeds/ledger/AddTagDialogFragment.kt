@@ -7,6 +7,7 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
 import android.support.v7.app.AlertDialog
+import android.text.InputType
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 
@@ -18,6 +19,8 @@ class AddTagDialogFragment(val tagAdded: (String) -> Unit) : DialogFragment() {
         dialogBuilder.setTitle(R.string.add_tag)
 
         val inputView = AutoCompleteTextView(context)
+        inputView.inputType = InputType.TYPE_TEXT_FLAG_CAP_WORDS
+
         tags?.observe(this, Observer { tags ->
             context?.let { context ->
                 tags?.let {
