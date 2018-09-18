@@ -11,13 +11,12 @@ import com.holahmeds.ledger.entities.Transaction
 import kotlinx.android.synthetic.main.transaction_card.view.*
 import java.time.format.DateTimeFormatter
 
-class TransactionAdapter(private var transactions: List<Transaction>,
-                         private val onItemLongClick: (Transaction) -> Unit)
+class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
     : RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder>() {
 
-    private var tagLists: Array<List<String>> = emptyArray()
+    private var data: List<Pair<Transaction, List<String>>> = emptyList()
 
-    class TransactionViewHolder(val transactionView: View): RecyclerView.ViewHolder(transactionView) {
+    class TransactionViewHolder(val transactionView: View) : RecyclerView.ViewHolder(transactionView) {
         val date: TextView = transactionView.date
         val amount: TextView = transactionView.amount
         val category: TextView = transactionView.category
@@ -26,13 +25,8 @@ class TransactionAdapter(private var transactions: List<Transaction>,
         val tags: ChipGroup = transactionView.tags
     }
 
-    fun setData(newTransactions: List<Transaction>) {
-        transactions = newTransactions
-        tagLists = Array(transactions.size) { emptyList<String>() }
-        notifyDataSetChanged()
-    }
-    fun setTags(transactionIndex:Int, tags: List<String>) {
-        tagLists[transactionIndex] = tags
+    fun setData(newData: List<Pair<Transaction, List<String>>>) {
+        data = newData
         notifyDataSetChanged()
     }
 
@@ -42,8 +36,8 @@ class TransactionAdapter(private var transactions: List<Transaction>,
     }
 
     override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
-        val transaction = transactions[position]
-        val tags = tagLists[position]
+        val transaction = data[position].first
+        val tags = data[position].second
 
         holder.date.text = transaction.date.format(DateTimeFormatter.ISO_LOCAL_DATE)
 
@@ -82,5 +76,5 @@ class TransactionAdapter(private var transactions: List<Transaction>,
         }
     }
 
-    override fun getItemCount() = transactions.size
+    override fun getItemCount() = data.size
 }

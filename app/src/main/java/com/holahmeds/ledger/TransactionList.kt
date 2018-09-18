@@ -1,5 +1,6 @@
 package com.holahmeds.ledger
 
+import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.Observer
 import android.os.AsyncTask
 import android.os.Bundle
@@ -21,7 +22,7 @@ class TransactionList : Fragment() {
 
         val database = LedgerDatabase.getInstance(context!!)
 
-        val transactionAdapter = TransactionAdapter(emptyList()) { transaction: Transaction ->
+        val transactionAdapter = TransactionAdapter { transaction: Transaction ->
             val dialog = TransactionListMenu()
             dialog.setListener(object : TransactionListMenu.ItemSelectedListener {
                 override fun onEditSelected() {
@@ -43,24 +44,34 @@ class TransactionList : Fragment() {
         // Set the adapter
         val list = view.transaction_list
         with(list) {
-            layoutManager =  LinearLayoutManager(context)
+            layoutManager = LinearLayoutManager(context)
             adapter = transactionAdapter
         }
 
         val liveTransactions = database.transactionDao().getAll()
-        liveTransactions.observe(this, Observer { transactions ->
-            if (transactions == null) {
-                return@Observer
-            }
 
-            transactionAdapter.setData(transactions)
-            for ((i, tran) in transactions.withIndex()) {
-                val liveTags = database.transactionTagDao().getTagsForTransaction(tran.id)
-                liveTags.observe(this, Observer { tags ->
-                    if (tags != null) {
-                        transactionAdapter.setTags(i, tags)
-                    }
-                })
+        val liveTransactionsWithTags = MediatorLiveData<List<Pair<Transaction, List<String>>>>()
+        val transactionTagDao = database.transactionTagDao()
+        liveTransactionsWithTags.addSource(liveTransactions) { transactions ->
+            transactions?.let { _ ->
+                val transactionsWithTags = transactions.map {
+                    Pair(it, emptyList<String>())
+                }.toMutableList()
+
+                for ((i, tran) in transactions.withIndex()) {
+                    val liveTags = transactionTagDao.getTagsForTransaction(tran.id)
+                    liveTags.observe(this, Observer { tags ->
+                        if (tags != null) {
+                            transactionsWithTags[i] = Pair(transactions[i], tags)
+                            liveTransactionsWithTags.value = transactionsWithTags
+                        }
+                    })
+                }
+            }
+        }
+        liveTransactionsWithTags.observe(this, Observer { transactions ->
+            transactions?.let {
+                transactionAdapter.setData(transactions)
             }
         })
 
