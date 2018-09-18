@@ -22,7 +22,7 @@ interface TransactionTagDao {
     fun getTagsForTransactionSync(transactionId: Int): List<String>
 
     @Insert
-    fun add(transactionTag: TransactionTag)
+    fun add(transactionTag: TransactionTag): Long
 
     @Delete
     fun delete(transactionTag: TransactionTag)

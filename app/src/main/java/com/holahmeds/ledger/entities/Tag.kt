@@ -18,5 +18,5 @@ interface TagDao {
     fun getTagId(tagText: String): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun add(tag: Tag)
+    fun add(tag: Tag): Long
 }

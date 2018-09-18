@@ -89,10 +89,10 @@ interface TransactionDao {
     fun getAllTransactees(): LiveData<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun add(transaction: Transaction)
+    fun add(transaction: Transaction): Long
 
     @Insert
-    fun addAll(transactions: Collection<Transaction>)
+    fun addAll(transactions: List<Transaction>): List<Long>
 
     @Delete
     fun delete(transactions: List<Transaction>)

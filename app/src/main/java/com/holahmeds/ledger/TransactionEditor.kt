@@ -194,7 +194,7 @@ class TransactionEditor : Fragment() {
                 val tagDao = database.tagDao()
                 val transactionTagDao = database.transactionTagDao()
 
-                transactionDao.add(transaction)
+                val transactionId = transactionDao.add(transaction)
 
                 val oldTags = transactionTagDao.getTagsForTransactionSync(transaction.id)
 
@@ -206,10 +206,8 @@ class TransactionEditor : Fragment() {
 
                 for (t in tags) {
                     if (!oldTags.contains(t)) {
-                        tagDao.add(Tag(0, t))
-
-                        val tagId = tagDao.getTagId(t)
-                        transactionTagDao.add(TransactionTag(transaction.id, tagId))
+                        val tagId = tagDao.add(Tag(0, t))
+                        transactionTagDao.add(TransactionTag(transactionId.toInt(), tagId.toInt()))
                     }
                 }
             }
