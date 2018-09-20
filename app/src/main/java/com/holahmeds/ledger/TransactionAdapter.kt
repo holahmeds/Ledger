@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter
 class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
     : RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder>() {
 
-    private var data: List<Pair<Transaction, List<String>>> = emptyList()
+    private var data: List<TransactionWithTags> = emptyList()
 
     class TransactionViewHolder(val transactionView: View) : RecyclerView.ViewHolder(transactionView) {
         val date: TextView = transactionView.date
@@ -25,7 +25,7 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
         val tags: ChipGroup = transactionView.tags
     }
 
-    fun setData(newData: List<Pair<Transaction, List<String>>>) {
+    fun setData(newData: List<TransactionWithTags>) {
         data = newData
         notifyDataSetChanged()
     }

@@ -2,7 +2,7 @@ package com.holahmeds.ledger
 
 import android.app.DatePickerDialog
 import android.arch.lifecycle.Observer
-import android.os.AsyncTask
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.design.chip.Chip
 import android.support.v4.app.Fragment
@@ -15,13 +15,10 @@ import android.widget.ArrayAdapter
 import android.widget.DatePicker
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
-import com.holahmeds.ledger.entities.Tag
 import com.holahmeds.ledger.entities.Transaction
-import com.holahmeds.ledger.entities.TransactionTag
 import kotlinx.android.synthetic.main.fragment_transaction_editor.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.stream.Collectors
 
 class TransactionEditor : Fragment() {
     val tags: MutableList<String> = mutableListOf()
@@ -35,7 +32,8 @@ class TransactionEditor : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val database = LedgerDatabase.getInstance(context!!)
+        val viewModel = ViewModelProviders.of(requireActivity()).get(LedgerViewModel::class.java)
+
         val transaction = arguments?.getParcelable<Transaction>("TRANSACTION")
 
         var date: LocalDate = transaction?.date ?: LocalDate.now()
@@ -56,7 +54,7 @@ class TransactionEditor : Fragment() {
                     }
                 }
             }
-            database.transactionTagDao().getTagsForTransaction(transaction.id).observe(this, observer)
+            viewModel.getTagsForTransaction(transaction.id).observe(this, observer)
         }
 
         updateDateView(date)
@@ -76,12 +74,12 @@ class TransactionEditor : Fragment() {
         }
 
         context?.let { context ->
-            database.transactionDao().getAllCategories().observe(this, Observer { categories ->
+            viewModel.getAllCategories().observe(this, Observer { categories ->
                 categories?.let {
                     category_view.setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, categories))
                 }
             })
-            database.transactionDao().getAllTransactees().observe(this, Observer { transactees ->
+            viewModel.getAllTransactees().observe(this, Observer { transactees ->
                 transactees?.let {
                     transactee_view.setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, transactees))
                 }
@@ -94,7 +92,7 @@ class TransactionEditor : Fragment() {
             val newTagDialog = AddTagDialogFragment { tag ->
                 addTag(tag)
             }
-            newTagDialog.tags = database.tagDao().getAll()
+            newTagDialog.tags = viewModel.getAllTags()
             newTagDialog.show(fragmentManager, "addtag")
         }
 
@@ -123,9 +121,9 @@ class TransactionEditor : Fragment() {
             }
 
             val newTransaction = Transaction(id, date, amount, category, transactee, note)
-            UpdateTransaction(database, newTransaction, tags).execute()
+            viewModel.updateTransaction(Pair(newTransaction, tags))
 
-            hideKeyboard(activity!!)
+            hideKeyboard(requireActivity())
             NavHostFragment.findNavController(this).popBackStack()
         }
     }
@@ -185,32 +183,5 @@ class TransactionEditor : Fragment() {
 
     private fun updateDateView(date: LocalDate) {
         date_view.setText(date.format(DateTimeFormatter.ISO_DATE))
-    }
-
-    companion object {
-        class UpdateTransaction(private val database: LedgerDatabase, private val transaction: Transaction, val tags: List<String>): AsyncTask<Void, Void, Unit>() {
-            override fun doInBackground(vararg params: Void?) {
-                val transactionDao = database.transactionDao()
-                val tagDao = database.tagDao()
-                val transactionTagDao = database.transactionTagDao()
-
-                val transactionId = transactionDao.add(transaction)
-
-                val oldTags = transactionTagDao.getTagsForTransactionSync(transaction.id)
-
-                val removedTags = oldTags.stream()
-                        .filter { t -> !tags.contains(t) }
-                        .map { t -> tagDao.getTagId(t) }
-                        .collect(Collectors.toList())
-                transactionTagDao.delete(transaction.id, removedTags)
-
-                for (t in tags) {
-                    if (!oldTags.contains(t)) {
-                        val tagId = tagDao.add(Tag(0, t))
-                        transactionTagDao.add(TransactionTag(transactionId.toInt(), tagId.toInt()))
-                    }
-                }
-            }
-        }
     }
 }
