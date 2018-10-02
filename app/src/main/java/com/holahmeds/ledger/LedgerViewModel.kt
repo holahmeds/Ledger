@@ -38,6 +38,15 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         transactees = transactionDao.getAllTransactees()
     }
 
+    fun getTransactionWithTags(transactionId: Long): LiveData<TransactionWithTags> {
+        val transaction = database.transactionDao().get(transactionId)
+        return Transformations.map(transaction) {
+            val tags = GetTransactionTags(database).execute(it).get()
+
+            Pair(it, tags[0])
+        }
+    }
+
     fun getTransactions(): LiveData<List<TransactionWithTags>> {
         return transactionsWithTags
     }
@@ -52,10 +61,6 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
 
     fun getAllTags(): LiveData<List<String>> {
         return tags
-    }
-
-    fun getTagsForTransaction(transactionId: Long): LiveData<List<String>> {
-        return database.transactionTagDao().getTagsForTransaction(transactionId)
     }
 
     fun getAllCategories(): LiveData<List<String>> {

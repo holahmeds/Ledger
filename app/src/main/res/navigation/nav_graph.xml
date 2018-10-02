@@ -8,12 +8,19 @@
         android:id="@+id/transactionList"
         android:name="com.holahmeds.ledger.TransactionList"
         android:label="fragment_transaction_list"
-        tools:layout="@layout/fragment_transaction_list" />
+        tools:layout="@layout/fragment_transaction_list" >
+        <action
+            android:id="@+id/action_edit_from_list"
+            app:destination="@id/transactionEditor"
+            app:popUpTo="@+id/transactionList" />
+    </fragment>
     <fragment
         android:id="@+id/transactionEditor"
         android:name="com.holahmeds.ledger.TransactionEditor"
         android:label="fragment_transaction_editor"
         tools:layout="@layout/fragment_transaction_editor" >
+        <argument
+            android:name="transactionID"
+            android:defaultValue="0L" />
     </fragment>
-    <!--<action android:id="@+id/action_global_transactionEditor" app:destination="@id/transactionEditor" />-->
 </navigation>

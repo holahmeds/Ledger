@@ -34,27 +34,31 @@ class TransactionEditor : Fragment() {
 
         val viewModel = ViewModelProviders.of(requireActivity()).get(LedgerViewModel::class.java)
 
-        val transaction = arguments?.getParcelable<Transaction>("TRANSACTION")
+        var date: LocalDate = LocalDate.now()
 
-        var date: LocalDate = transaction?.date ?: LocalDate.now()
-        if (transaction != null) {
-            if (transaction.amount > 0) {
-                chip_income.isChecked = true
-            }
-            amount_view.setText(Transaction.amountToString(transaction.amount).replace("-", ""))
+        val transactionID = TransactionEditorArgs.fromBundle(arguments).transactionID
+        if (transactionID != 0L) {
+            viewModel.getTransactionWithTags(transactionID).observe(this, Observer {
+                if (it != null) {
+                    val transaction = it.first
+                    val tags = it.second
 
-            category_view.setText(transaction.category)
-            transactee_view.setText(transaction.transactee)
-            note_view.setText(transaction.note)
+                    date = transaction.date
 
-            val observer = Observer<List<String>> {tags ->
-                if (tags != null) {
+                    if (transaction.amount > 0) {
+                        chip_income.isChecked = true
+                    }
+                    amount_view.setText(Transaction.amountToString(transaction.amount).replace("-", ""))
+
+                    category_view.setText(transaction.category)
+                    transactee_view.setText(transaction.transactee)
+                    note_view.setText(transaction.note)
+
                     for (t in tags) {
                         addTag(t)
                     }
                 }
-            }
-            viewModel.getTagsForTransaction(transaction.id).observe(this, observer)
+            })
         }
 
         updateDateView(date)
@@ -102,7 +106,6 @@ class TransactionEditor : Fragment() {
                 return@setOnClickListener
             }
 
-            val id = transaction?.id ?: 0
             val amount = Transaction.stringToAmount(amount_view.text.toString()) * if (chip_expense.isChecked) { -1 } else { 1 }
             val category = category_view.text.toString()
             val transactee = transactee_view.text.let {
@@ -120,7 +123,7 @@ class TransactionEditor : Fragment() {
                 }
             }
 
-            val newTransaction = Transaction(id, date, amount, category, transactee, note)
+            val newTransaction = Transaction(transactionID, date, amount, category, transactee, note)
             viewModel.updateTransaction(Pair(newTransaction, tags))
 
             hideKeyboard(requireActivity())

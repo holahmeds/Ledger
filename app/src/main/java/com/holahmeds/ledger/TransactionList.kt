@@ -24,11 +24,10 @@ class TransactionList : Fragment() {
             val dialog = TransactionListMenu()
             dialog.setListener(object : TransactionListMenu.ItemSelectedListener {
                 override fun onEditSelected() {
-                    val args = Bundle()
-                    args.putParcelable("TRANSACTION", transaction)
-
+                    val action = TransactionListDirections.actionEditFromList()
+                    action.setTransactionID(transaction.id)
                     val navController = NavHostFragment.findNavController(this@TransactionList)
-                    navController.navigate(R.id.transactionEditor, args)
+                    navController.navigate(action)
                 }
 
                 override fun onDeleteSelected() {
