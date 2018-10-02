@@ -11,15 +11,15 @@ import android.arch.persistence.room.*
         ],
         indices = [(Index(value = ["tagId"]))]
 )
-data class TransactionTag(val transactionId: Int, val tagId: Int)
+data class TransactionTag(val transactionId: Long, val tagId: Long)
 
 @Dao
 interface TransactionTagDao {
     @Query("SELECT text FROM tag INNER JOIN transactiontag ON tag.id=transactiontag.tagId WHERE transactiontag.transactionId=:transactionId")
-    fun getTagsForTransaction(transactionId: Int): LiveData<List<String>>
+    fun getTagsForTransaction(transactionId: Long): LiveData<List<String>>
 
     @Query("SELECT text FROM tag INNER JOIN transactiontag ON tag.id=transactiontag.tagId WHERE transactiontag.transactionId=:transactionId")
-    fun getTagsForTransactionSync(transactionId: Int): List<String>
+    fun getTagsForTransactionSync(transactionId: Long): List<String>
 
     @Insert
     fun add(transactionTag: TransactionTag): Long
@@ -28,8 +28,8 @@ interface TransactionTagDao {
     fun delete(transactionTag: TransactionTag)
 
     @Query("DELETE FROM transactiontag WHERE transactionId IN(:transactionIds)")
-    fun delete(transactionIds: List<Int>)
+    fun delete(transactionIds: List<Long>)
 
     @Query("DELETE FROM transactiontag WHERE transactionId=:transactionId AND tagId IN(:tagIds)")
-    fun delete(transactionId: Int, tagIds: List<Int>)
+    fun delete(transactionId: Long, tagIds: List<Long>)
 }

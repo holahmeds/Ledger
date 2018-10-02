@@ -54,7 +54,7 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         return tags
     }
 
-    fun getTagsForTransaction(transactionId: Int): LiveData<List<String>> {
+    fun getTagsForTransaction(transactionId: Long): LiveData<List<String>> {
         return database.transactionTagDao().getTagsForTransaction(transactionId)
     }
 
@@ -102,7 +102,7 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
                 for (t in tags) {
                     if (!oldTags.contains(t)) {
                         val tagId = tagDao.add(Tag(0, t))
-                        transactionTagDao.add(TransactionTag(transactionId.toInt(), tagId.toInt()))
+                        transactionTagDao.add(TransactionTag(transactionId, tagId))
                     }
                 }
             }

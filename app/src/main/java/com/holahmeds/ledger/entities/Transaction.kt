@@ -8,14 +8,14 @@ import java.time.LocalDate
 
 @Entity(tableName = "transaction_table")
 class Transaction: Parcelable {
-    @PrimaryKey(autoGenerate = true) var id: Int
+    @PrimaryKey(autoGenerate = true) var id: Long
     val date: LocalDate
     val amount: Long
     val category: String
     val transactee: String?
     val note: String?
 
-    constructor(id: Int, date: LocalDate, amount: Long, category: String, transactee: String?, note: String?) {
+    constructor(id: Long, date: LocalDate, amount: Long, category: String, transactee: String?, note: String?) {
         this.id = id
         this.date = date
         this.amount = amount
@@ -25,7 +25,7 @@ class Transaction: Parcelable {
     }
 
     constructor(parcel: Parcel) {
-        this.id = parcel.readInt()
+        this.id = parcel.readLong()
         this.date = LocalDate.of(parcel.readInt(), parcel.readInt(), parcel.readInt())
         this.amount = parcel.readLong()
         this.category = parcel.readString() ?: ""
@@ -33,7 +33,7 @@ class Transaction: Parcelable {
         this.note = parcel.readString()
     }
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeInt(id)
+        parcel.writeLong(id)
         with(date) {
             parcel.writeInt(year)
             parcel.writeInt(monthValue)

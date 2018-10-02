@@ -5,7 +5,7 @@ import android.arch.persistence.room.*
 
 @Entity
 data class Tag(
-        @PrimaryKey(autoGenerate = true) var id: Int,
+        @PrimaryKey(autoGenerate = true) var id: Long,
         val text: String
 )
 
@@ -15,7 +15,7 @@ interface TagDao {
     fun getAll(): LiveData<List<String>>
 
     @Query("SELECT id FROM tag WHERE text=:tagText")
-    fun getTagId(tagText: String): Int
+    fun getTagId(tagText: String): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun add(tag: Tag): Long
