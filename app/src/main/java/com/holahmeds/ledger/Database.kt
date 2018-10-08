@@ -9,7 +9,7 @@ import com.holahmeds.ledger.entities.Transaction
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@Database(entities = [Transaction::class, Tag::class, TransactionTag::class], version = 3)
+@Database(entities = [Transaction::class, Tag::class, TransactionTag::class], version = 4)
 @TypeConverters(Converters::class)
 abstract class LedgerDatabase: RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
@@ -29,10 +29,15 @@ abstract class LedgerDatabase: RoomDatabase() {
                 database.execSQL("ALTER TABLE 'transaction_table' ADD COLUMN note TEXT")
             }
         }
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("CREATE UNIQUE INDEX `index_Tag_text` ON `Tag` (`text`)")
+            }
+        }
 
         fun getInstance(context: Context): LedgerDatabase {
             return Room.databaseBuilder(context, LedgerDatabase::class.java, "transaction-database")
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
         }
     }

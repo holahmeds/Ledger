@@ -3,7 +3,7 @@ package com.holahmeds.ledger.entities
 import android.arch.lifecycle.LiveData
 import android.arch.persistence.room.*
 
-@Entity
+@Entity(indices = [Index(value = ["text"], unique = true)])
 data class Tag(
         @PrimaryKey(autoGenerate = true) var id: Long,
         val text: String
