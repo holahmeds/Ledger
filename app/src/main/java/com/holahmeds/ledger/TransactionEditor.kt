@@ -38,11 +38,8 @@ class TransactionEditor : Fragment() {
 
         val transactionID = TransactionEditorArgs.fromBundle(arguments).transactionID
         if (transactionID != 0L) {
-            viewModel.getTransactionWithTags(transactionID).observe(this, Observer {
-                if (it != null) {
-                    val transaction = it.first
-                    val tags = it.second
-
+            viewModel.getTransaction(transactionID).observe(this, Observer { transaction ->
+                if (transaction != null) {
                     date = transaction.date
 
                     if (transaction.amount > 0) {
@@ -54,7 +51,7 @@ class TransactionEditor : Fragment() {
                     transactee_view.setText(transaction.transactee)
                     note_view.setText(transaction.note)
 
-                    for (t in tags) {
+                    for (t in transaction.tags) {
                         addTag(t)
                     }
                 }
@@ -123,8 +120,8 @@ class TransactionEditor : Fragment() {
                 }
             }
 
-            val newTransaction = Transaction(transactionID, date, amount, category, transactee, note)
-            viewModel.updateTransaction(Pair(newTransaction, tags))
+            val newTransaction = Transaction(transactionID, date, amount, category, transactee, note, tags)
+            viewModel.updateTransaction(newTransaction)
 
             hideKeyboard(requireActivity())
             NavHostFragment.findNavController(this).popBackStack()

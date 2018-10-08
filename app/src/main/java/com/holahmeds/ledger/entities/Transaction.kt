@@ -10,7 +10,10 @@ class Transaction(@PrimaryKey(autoGenerate = true) var id: Long,
                   val amount: Long,
                   val category: String,
                   val transactee: String?,
-                  val note: String?) {
+                  val note: String?,
+                  @Ignore var tags: List<String>) {
+
+    constructor(id: Long, date: LocalDate, amount: Long, category: String, transactee: String?, note: String?) : this(id, date, amount, category, transactee, note, emptyList())
 
     companion object {
         fun amountToString(amount: Long): String {
@@ -44,9 +47,6 @@ interface TransactionDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun add(transaction: Transaction): Long
-
-    @Insert
-    fun addAll(transactions: List<Transaction>): List<Long>
 
     @Delete
     fun delete(transactions: List<Transaction>)

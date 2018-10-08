@@ -6,13 +6,10 @@ import android.os.AsyncTask
 import com.holahmeds.ledger.entities.*
 import java.util.stream.Collectors
 
-typealias TransactionWithTags = Pair<Transaction, List<String>>
-
 class LedgerViewModel(application: Application) : AndroidViewModel(application) {
     private val database: LedgerDatabase = LedgerDatabase.getInstance(application)
 
-    private val transactions: LiveData<List<Transaction>>
-    private val transactionsWithTags: LiveData<List<TransactionWithTags>>
+    private val transactionsWithTags: LiveData<List<Transaction>>
     private val tags: LiveData<List<String>>
 
     private val categories: LiveData<List<String>>
@@ -22,14 +19,13 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         val transactionDao = database.transactionDao()
         val tagDao = database.tagDao()
 
-        transactions = transactionDao.getAll()
-
-        transactionsWithTags = Transformations.map(transactions) { transactions ->
+        transactionsWithTags = Transformations.map(transactionDao.getAll()) { transactions ->
             val tags = GetTransactionTags(database).execute(*transactions.toTypedArray()).get()
 
-            List(transactions.size) { i ->
-                Pair(transactions[i], tags[i])
+            for ((i, t) in transactions.withIndex()) {
+                t.tags = tags[i]
             }
+            transactions
         }
 
         tags = tagDao.getAll()
@@ -38,21 +34,21 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         transactees = transactionDao.getAllTransactees()
     }
 
-    fun getTransactionWithTags(transactionId: Long): LiveData<TransactionWithTags> {
+    fun getTransaction(transactionId: Long): LiveData<Transaction> {
         val transaction = database.transactionDao().get(transactionId)
         return Transformations.map(transaction) {
             val tags = GetTransactionTags(database).execute(it).get()
-
-            Pair(it, tags[0])
+            it.tags = tags[0]
+            it
         }
     }
 
-    fun getTransactions(): LiveData<List<TransactionWithTags>> {
+    fun getTransactions(): LiveData<List<Transaction>> {
         return transactionsWithTags
     }
 
-    fun updateTransaction(transaction: TransactionWithTags) {
-        UpdateTransaction(database, transaction.first, transaction.second).execute()
+    fun updateTransaction(transaction: Transaction) {
+        UpdateTransaction(database, transaction).execute()
     }
 
     fun deleteTransaction(transaction: Transaction) {
@@ -88,7 +84,7 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
 
-        class UpdateTransaction(private val database: LedgerDatabase, private val transaction: Transaction, val tags: List<String>): AsyncTask<Void, Void, Unit>() {
+        class UpdateTransaction(private val database: LedgerDatabase, private val transaction: Transaction) : AsyncTask<Void, Void, Unit>() {
             override fun doInBackground(vararg params: Void?) {
                 val transactionDao = database.transactionDao()
                 val tagDao = database.tagDao()
@@ -99,14 +95,17 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
                 val oldTags = transactionTagDao.getTagsForTransactionSync(transaction.id)
 
                 val removedTags = oldTags.stream()
-                        .filter { t -> !tags.contains(t) }
+                        .filter { t -> !transaction.tags.contains(t) }
                         .map { t -> tagDao.getTagId(t) }
                         .collect(Collectors.toList())
                 transactionTagDao.delete(transaction.id, removedTags)
 
-                for (t in tags) {
+                for (t in transaction.tags) {
                     if (!oldTags.contains(t)) {
-                        val tagId = tagDao.add(Tag(0, t))
+                        var tagId = tagDao.getTagId(t)
+                        if (tagId == 0L) {
+                            tagId = tagDao.add(Tag(0, t))
+                        }
                         transactionTagDao.add(TransactionTag(transactionId, tagId))
                     }
                 }

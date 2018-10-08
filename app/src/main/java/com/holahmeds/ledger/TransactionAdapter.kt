@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter
 class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
     : RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder>() {
 
-    private var data: List<TransactionWithTags> = emptyList()
+    private var data: List<Transaction> = emptyList()
 
     class TransactionViewHolder(val transactionView: View) : RecyclerView.ViewHolder(transactionView) {
         val date: TextView = transactionView.date
@@ -25,7 +25,7 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
         val tags: ChipGroup = transactionView.tags
     }
 
-    fun setData(newData: List<TransactionWithTags>) {
+    fun setData(newData: List<Transaction>) {
         data = newData
         notifyDataSetChanged()
     }
@@ -36,8 +36,7 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
     }
 
     override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
-        val transaction = data[position].first
-        val tags = data[position].second
+        val transaction = data[position]
 
         holder.date.text = transaction.date.format(DateTimeFormatter.ISO_LOCAL_DATE)
 
@@ -64,7 +63,7 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
         }
 
         holder.tags.removeAllViews()
-        for (t in tags) {
+        for (t in transaction.tags) {
             val chip = Chip(holder.tags.context)
             chip.chipText = t
             holder.tags.addView(chip)
