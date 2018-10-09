@@ -1,21 +1,34 @@
 package com.holahmeds.ledger
 
+import android.Manifest
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Environment
+import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import com.holahmeds.ledger.entities.Transaction
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.android.synthetic.main.fragment_transaction_list.view.*
+import java.io.File
 
 class TransactionList : Fragment() {
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+    private var transactions: List<Transaction> = emptyList()
+
+    override fun onCreateView(inflater: LayoutInflater,
+                              container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
+        setHasOptionsMenu(true)
+
         val view = inflater.inflate(R.layout.fragment_transaction_list, container, false)
 
         val viewModel = ViewModelProviders.of(requireActivity()).get(LedgerViewModel::class.java)
@@ -45,9 +58,10 @@ class TransactionList : Fragment() {
             adapter = transactionAdapter
         }
 
-        val transactions = viewModel.getTransactions()
-        transactions.observe(this, Observer {
+        val liveTransactions = viewModel.getTransactions()
+        liveTransactions.observe(this, Observer {
             it?.let { _ ->
+                transactions = it
                 transactionAdapter.setData(it)
             }
         })
@@ -69,5 +83,51 @@ class TransactionList : Fragment() {
         }
 
         return view
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.transaction_list_menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.export -> {
+                if (ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_EXPORT_FILE)
+                } else {
+                    exportToFile()
+                }
+                return true
+            }
+        }
+
+        return false
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        when (requestCode) {
+            REQUEST_EXPORT_FILE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    exportToFile()
+                } else {
+                    Toast.makeText(context, "Cannot export transactions without write permission", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private fun exportToFile() {
+        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "transactions.json")
+
+        val moshi = Moshi.Builder().add(CurrencyAdapter()).add(DateAdapter()).add(KotlinJsonAdapterFactory()).build()
+        val type = Types.newParameterizedType(List::class.java, Transaction::class.java)
+        val adapter = moshi.adapter<List<Transaction>>(type).indent("  ")
+
+        file.writeText(adapter.toJson(transactions))
+    }
+
+    companion object {
+        const val REQUEST_EXPORT_FILE = 0
     }
 }

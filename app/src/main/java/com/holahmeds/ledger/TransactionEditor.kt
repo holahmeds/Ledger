@@ -18,7 +18,6 @@ import androidx.navigation.fragment.NavHostFragment
 import com.holahmeds.ledger.entities.Transaction
 import kotlinx.android.synthetic.main.fragment_transaction_editor.*
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 class TransactionEditor : Fragment() {
     val tags: MutableList<String> = mutableListOf()
@@ -45,7 +44,7 @@ class TransactionEditor : Fragment() {
                     if (transaction.amount > 0) {
                         chip_income.isChecked = true
                     }
-                    amount_view.setText(Transaction.amountToString(transaction.amount).replace("-", ""))
+                    amount_view.setText(CurrencyAdapter.amountToString(transaction.amount).replace("-", ""))
 
                     category_view.setText(transaction.category)
                     transactee_view.setText(transaction.transactee)
@@ -103,7 +102,7 @@ class TransactionEditor : Fragment() {
                 return@setOnClickListener
             }
 
-            val amount = Transaction.stringToAmount(amount_view.text.toString()) * if (chip_expense.isChecked) { -1 } else { 1 }
+            val amount = CurrencyAdapter.stringToAmount(amount_view.text.toString()) * if (chip_expense.isChecked) { -1 } else { 1 }
             val category = category_view.text.toString()
             val transactee = transactee_view.text.let {
                 if (it.isNullOrBlank()) {
@@ -182,6 +181,6 @@ class TransactionEditor : Fragment() {
     }
 
     private fun updateDateView(date: LocalDate) {
-        date_view.setText(date.format(DateTimeFormatter.ISO_DATE))
+        date_view.setText(DateAdapter.dateToString(date))
     }
 }

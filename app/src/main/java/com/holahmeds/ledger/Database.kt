@@ -1,16 +1,16 @@
 package com.holahmeds.ledger
 
 import android.arch.persistence.db.SupportSQLiteDatabase
-import android.arch.persistence.room.*
+import android.arch.persistence.room.Database
+import android.arch.persistence.room.Room
+import android.arch.persistence.room.RoomDatabase
+import android.arch.persistence.room.TypeConverters
 import android.arch.persistence.room.migration.Migration
 import android.content.Context
 import com.holahmeds.ledger.entities.*
-import com.holahmeds.ledger.entities.Transaction
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @Database(entities = [Transaction::class, Tag::class, TransactionTag::class], version = 4)
-@TypeConverters(Converters::class)
+@TypeConverters(DateAdapter::class)
 abstract class LedgerDatabase: RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun tagDao(): TagDao
@@ -39,28 +39,6 @@ abstract class LedgerDatabase: RoomDatabase() {
             return Room.databaseBuilder(context, LedgerDatabase::class.java, "transaction-database")
                     .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
-        }
-    }
-}
-
-class Converters {
-    companion object {
-        private val FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE
-
-        @TypeConverter
-        @JvmStatic
-        fun dateToString(date: LocalDate?): String? {
-            return date?.format(FORMATTER)
-        }
-
-        @TypeConverter
-        @JvmStatic
-        fun stringToDate(dateString: String?): LocalDate? {
-            return if (dateString == null) {
-                null
-            } else {
-                LocalDate.parse(dateString, FORMATTER)
-            }
         }
     }
 }

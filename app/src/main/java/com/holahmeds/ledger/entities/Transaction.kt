@@ -2,33 +2,21 @@ package com.holahmeds.ledger.entities
 
 import android.arch.lifecycle.LiveData
 import android.arch.persistence.room.*
+import com.holahmeds.ledger.IntegerBacked
+import com.squareup.moshi.JsonClass
 import java.time.LocalDate
 
 @Entity(tableName = "transaction_table")
+@JsonClass(generateAdapter = true)
 class Transaction(@PrimaryKey(autoGenerate = true) var id: Long,
                   val date: LocalDate,
-                  val amount: Long,
+                  @IntegerBacked val amount: Long,
                   val category: String,
                   val transactee: String?,
                   val note: String?,
                   @Ignore var tags: List<String>) {
 
     constructor(id: Long, date: LocalDate, amount: Long, category: String, transactee: String?, note: String?) : this(id, date, amount, category, transactee, note, emptyList())
-
-    companion object {
-        fun amountToString(amount: Long): String {
-            val string = amount.toString()
-            return string.substring(0, (string.length - 2)) + '.' + string.substring((string.length - 2), string.length)
-        }
-        fun stringToAmount(string: String): Long {
-            return if (string.contains('.')) {
-                val s = string.split(".")
-                s[0].toLong() * 100 + s[1].toLong()
-            } else {
-                string.toLong() * 100
-            }
-        }
-    }
 }
 
 @Dao

@@ -40,7 +40,7 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
 
         holder.date.text = transaction.date.format(DateTimeFormatter.ISO_LOCAL_DATE)
 
-        holder.amount.text = Transaction.amountToString(transaction.amount)
+        holder.amount.text = CurrencyAdapter.amountToString(transaction.amount)
 
         holder.category.text = transaction.category
 
