@@ -16,4 +16,5 @@
     <string name="income">Income</string>
     <string name="expense">Expense</string>
     <string name="export_to_file">Export to file</string>
+    <string name="balance">Balance</string>
 </resources>

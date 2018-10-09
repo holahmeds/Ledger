@@ -8,13 +8,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import com.holahmeds.ledger.entities.Transaction
+import kotlinx.android.synthetic.main.balance_card.view.*
 import kotlinx.android.synthetic.main.transaction_card.view.*
 import java.time.format.DateTimeFormatter
 
 class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
-    : RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder>() {
+    : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var data: List<Transaction> = emptyList()
+    private var balance: Long = 0L
+
+    class BalanceViewHolder(balanceCard: View) : RecyclerView.ViewHolder(balanceCard) {
+        var balance: TextView = balanceCard.balance_view
+    }
 
     class TransactionViewHolder(val transactionView: View) : RecyclerView.ViewHolder(transactionView) {
         val date: TextView = transactionView.date
@@ -27,53 +33,85 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
 
     fun setData(newData: List<Transaction>) {
         data = newData
+        balance = newData.asSequence().map { transaction -> transaction.amount }.sum()
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
-        val transactionView = LayoutInflater.from(parent.context).inflate(R.layout.transaction_card, parent, false)
-        return TransactionViewHolder(transactionView)
+    override fun getItemViewType(position: Int): Int {
+        return if (position == 0) {
+            BALANCE_CARD
+        } else {
+            TRANSACTION_CARD
+        }
     }
 
-    override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
-        val transaction = data[position]
-
-        holder.date.text = transaction.date.format(DateTimeFormatter.ISO_LOCAL_DATE)
-
-        holder.amount.text = CurrencyAdapter.amountToString(transaction.amount)
-
-        holder.category.text = transaction.category
-
-        holder.transactee.run {
-            if (transaction.transactee != null) {
-                visibility = View.VISIBLE
-                text = transaction.transactee
-            } else {
-                visibility = View.GONE
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return when (viewType) {
+            BALANCE_CARD -> {
+                val balanceCard = LayoutInflater.from(parent.context).inflate(R.layout.balance_card, parent, false)
+                BalanceViewHolder(balanceCard)
+            }
+            else -> {
+                // TRANSACTION_CARD
+                val transactionView = LayoutInflater.from(parent.context).inflate(R.layout.transaction_card, parent, false)
+                TransactionViewHolder(transactionView)
             }
         }
+    }
 
-        holder.note.run {
-            if (transaction.note != null) {
-                visibility = View.VISIBLE
-                text = transaction.note
-            } else {
-                visibility = View.GONE
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (holder.itemViewType) {
+            BALANCE_CARD -> {
+                val balanceHolder = holder as BalanceViewHolder
+                balanceHolder.balance.text = CurrencyAdapter.amountToString(balance)
             }
-        }
+            TRANSACTION_CARD -> {
+                val transactionHolder = holder as TransactionViewHolder
+                val transaction = data[position - 1]
 
-        holder.tags.removeAllViews()
-        for (t in transaction.tags) {
-            val chip = Chip(holder.tags.context)
-            chip.chipText = t
-            holder.tags.addView(chip)
-        }
+                transactionHolder.date.text = transaction.date.format(DateTimeFormatter.ISO_LOCAL_DATE)
 
-        holder.transactionView.setOnLongClickListener {
-            onItemLongClick(transaction)
-            true
+                transactionHolder.amount.text = CurrencyAdapter.amountToString(transaction.amount)
+
+                transactionHolder.category.text = transaction.category
+
+                transactionHolder.transactee.run {
+                    if (transaction.transactee != null) {
+                        visibility = View.VISIBLE
+                        text = transaction.transactee
+                    } else {
+                        visibility = View.GONE
+                    }
+                }
+
+                transactionHolder.note.run {
+                    if (transaction.note != null) {
+                        visibility = View.VISIBLE
+                        text = transaction.note
+                    } else {
+                        visibility = View.GONE
+                    }
+                }
+
+                transactionHolder.tags.removeAllViews()
+                for (t in transaction.tags) {
+                    val chip = Chip(transactionHolder.tags.context)
+                    chip.chipText = t
+                    transactionHolder.tags.addView(chip)
+                }
+
+                transactionHolder.transactionView.setOnLongClickListener {
+                    onItemLongClick(transaction)
+                    true
+                }
+            }
         }
     }
 
     override fun getItemCount() = data.size
+
+    companion object {
+        private var BALANCE_CARD = 0
+        private var TRANSACTION_CARD = 1
+    }
 }
