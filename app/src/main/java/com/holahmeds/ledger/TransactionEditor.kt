@@ -4,7 +4,6 @@ import android.app.DatePickerDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.support.design.chip.Chip
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
@@ -16,12 +15,11 @@ import android.widget.DatePicker
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import com.holahmeds.ledger.entities.Transaction
+import com.hootsuite.nachos.terminator.ChipTerminatorHandler
 import kotlinx.android.synthetic.main.fragment_transaction_editor.*
 import java.time.LocalDate
 
 class TransactionEditor : Fragment() {
-    val tags: MutableList<String> = mutableListOf()
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
@@ -50,9 +48,7 @@ class TransactionEditor : Fragment() {
                     transactee_view.setText(transaction.transactee)
                     note_view.setText(transaction.note)
 
-                    for (t in transaction.tags) {
-                        addTag(t)
-                    }
+                    tags_view.setText(transaction.tags)
                 }
             })
         }
@@ -84,16 +80,19 @@ class TransactionEditor : Fragment() {
                     transactee_view.setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, transactees))
                 }
             })
+            viewModel.getAllTags().observe(this, Observer { tags ->
+                tags?.let {
+                    val adapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, tags)
+                    tags_view.setAdapter(adapter)
+                }
+            })
         }
 
         addErrorListeners()
 
-        add_tag.setOnClickListener {
-            val newTagDialog = AddTagDialogFragment { tag ->
-                addTag(tag)
-            }
-            newTagDialog.tags = viewModel.getAllTags()
-            newTagDialog.show(fragmentManager, "addtag")
+        tags_view.apply {
+            addChipTerminator('\n', ChipTerminatorHandler.BEHAVIOR_CHIPIFY_ALL)
+            enableEditChipOnTouch(true, true)
         }
 
         save_button.setOnClickListener { _ ->
@@ -118,6 +117,10 @@ class TransactionEditor : Fragment() {
                     it.toString()
                 }
             }
+            val tags = tags_view.let {
+                it.chipifyAllUnterminatedTokens()
+                it.chipValues
+            }
 
             val newTransaction = Transaction(transactionID, date, amount, category, transactee, note, tags)
             viewModel.updateTransaction(newTransaction)
@@ -125,19 +128,6 @@ class TransactionEditor : Fragment() {
             hideKeyboard(requireActivity())
             NavHostFragment.findNavController(this).popBackStack()
         }
-    }
-
-    private fun addTag(tag: String) {
-        val chip = Chip(context)
-        chip.chipText = tag
-        chip.isCloseIconEnabled = true
-        chip.setOnCloseIconClickListener { view ->
-            tag_chipgroup.removeView(view)
-            tags.remove(tag)
-        }
-
-        tag_chipgroup.addView(chip, 0)
-        tags.add(tag)
     }
 
     private fun updateCategoryError() {
