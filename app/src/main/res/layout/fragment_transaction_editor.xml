@@ -99,7 +99,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="false"
-                android:text="@string/income" />
+                android:text="@string/income"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Chip" />
 
             <android.support.design.chip.Chip
                 android:id="@+id/chip_expense"
@@ -107,7 +108,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
-                android:text="@string/expense" />
+                android:text="@string/expense"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Chip" />
 
         </android.support.design.chip.ChipGroup>
 

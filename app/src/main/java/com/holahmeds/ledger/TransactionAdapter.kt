@@ -1,11 +1,12 @@
 package com.holahmeds.ledger
 
-import android.support.design.chip.Chip
+import android.support.design.chip.ChipDrawable
 import android.support.design.chip.ChipGroup
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import com.holahmeds.ledger.entities.Transaction
 import kotlinx.android.synthetic.main.balance_card.view.*
@@ -95,9 +96,16 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
 
                 transactionHolder.tags.removeAllViews()
                 for (t in transaction.tags) {
-                    val chip = Chip(transactionHolder.tags.context)
-                    chip.chipText = t
-                    transactionHolder.tags.addView(chip)
+                    val context = transactionHolder.tags.context
+
+                    val chip = ChipDrawable.createFromResource(context, R.xml.chip_tag)
+                    chip.setText(t)
+                    chip.setBounds(0, 0, chip.intrinsicWidth, chip.intrinsicHeight)
+
+                    val view = ImageView(context)
+                    view.setImageDrawable(chip)
+
+                    transactionHolder.tags.addView(view)
                 }
 
                 transactionHolder.transactionView.setOnLongClickListener {
