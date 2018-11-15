@@ -2,9 +2,9 @@ package com.holahmeds.ledger
 
 import android.app.Activity
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -20,6 +20,6 @@ class MainActivity : AppCompatActivity() {
 
 fun hideKeyboard(activity: Activity) {
     val imm = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-    val view = activity.currentFocus?: View(activity)
+    val view = activity.currentFocus ?: View(activity)
     imm.hideSoftInputFromWindow(view.windowToken, 0)
 }

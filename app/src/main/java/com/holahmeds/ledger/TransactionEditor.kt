@@ -1,10 +1,7 @@
 package com.holahmeds.ledger
 
 import android.app.DatePickerDialog
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -13,6 +10,9 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.DatePicker
 import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.NavHostFragment
 import com.holahmeds.ledger.entities.Transaction
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler
@@ -95,31 +95,35 @@ class TransactionEditor : Fragment() {
             enableEditChipOnTouch(true, true)
         }
 
-        save_button.setOnClickListener { _ ->
+        save_button.setOnClickListener {
             if (inputHasErrors()) {
                 Toast.makeText(context, "Invalid data", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
 
-            val amount = CurrencyAdapter.stringToAmount(amount_view.text.toString()) * if (chip_expense.isChecked) { -1 } else { 1 }
+            val amount = CurrencyAdapter.stringToAmount(amount_view.text.toString()) * if (chip_expense.isChecked) {
+                -1
+            } else {
+                1
+            }
             val category = category_view.text.toString()
-            val transactee = transactee_view.text.let {
-                if (it.isNullOrBlank()) {
+            val transactee = transactee_view.text.let { text ->
+                if (text.isNullOrBlank()) {
                     null
                 } else {
-                    it.toString()
+                    text.toString()
                 }
             }
-            val note = note_view.text.let {
-                if (it.isNullOrBlank()) {
+            val note = note_view.text.let { text ->
+                if (text.isNullOrBlank()) {
                     null
                 } else {
-                    it.toString()
+                    text.toString()
                 }
             }
-            val tags = tags_view.let {
-                it.chipifyAllUnterminatedTokens()
-                it.chipValues
+            val tags = tags_view.let { view ->
+                view.chipifyAllUnterminatedTokens()
+                view.chipValues
             }
 
             val newTransaction = Transaction(transactionID, date, amount, category, transactee, note, tags)
@@ -137,6 +141,7 @@ class TransactionEditor : Fragment() {
             null
         }
     }
+
     private fun updateAmountError() {
         val amountRegex = Regex("\\d+(\\.\\d{0,2})?")
 

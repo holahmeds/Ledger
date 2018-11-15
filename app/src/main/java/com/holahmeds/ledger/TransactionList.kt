@@ -1,19 +1,19 @@
 package com.holahmeds.ledger
 
 import android.Manifest
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Environment
-import android.support.v4.app.ActivityCompat
-import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.*
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.NavHostFragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.holahmeds.ledger.entities.Transaction
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
@@ -51,30 +51,26 @@ class TransactionList : Fragment() {
             dialog.show(fragmentManager, "transactionlistmenu")
         }
 
+        val liveTransactions = viewModel.getTransactions()
+        liveTransactions.observe(this, Observer { list ->
+            transactions = list
+            transactionAdapter.setData(list)
+        })
+
         // Set the adapter
-        val list = view.transaction_list
-        with(list) {
+        with(view.transaction_list) {
             layoutManager = LinearLayoutManager(context)
             adapter = transactionAdapter
-        }
-
-        val liveTransactions = viewModel.getTransactions()
-        liveTransactions.observe(this, Observer {
-            it?.let { _ ->
-                transactions = it
-                transactionAdapter.setData(it)
-            }
-        })
-
-        list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (dy > 0) {
-                    view.new_transaction_fab.hide()
-                } else if (dy < 0) {
-                    view.new_transaction_fab.show()
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    if (dy > 0) {
+                        view.new_transaction_fab.hide()
+                    } else if (dy < 0) {
+                        view.new_transaction_fab.show()
+                    }
                 }
-            }
-        })
+            })
+        }
 
 
         view.new_transaction_fab.setOnClickListener {

@@ -1,9 +1,13 @@
 package com.holahmeds.ledger
 
 import android.app.Application
-import android.arch.lifecycle.*
 import android.os.AsyncTask
-import com.holahmeds.ledger.entities.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
+import com.holahmeds.ledger.entities.Tag
+import com.holahmeds.ledger.entities.Transaction
+import com.holahmeds.ledger.entities.TransactionTag
 import java.util.stream.Collectors
 
 class LedgerViewModel(application: Application) : AndroidViewModel(application) {
@@ -68,9 +72,8 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
     }
 
 
-
     companion object {
-        class GetTransactionTags(private val database: LedgerDatabase): AsyncTask<Transaction, Void, List<List<String>>>() {
+        class GetTransactionTags(private val database: LedgerDatabase) : AsyncTask<Transaction, Void, List<List<String>>>() {
             override fun doInBackground(vararg transactions: Transaction?): List<List<String>>? {
                 val transactionTagDao = database.transactionTagDao()
 

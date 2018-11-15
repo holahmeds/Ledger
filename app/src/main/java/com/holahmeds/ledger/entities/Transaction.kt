@@ -1,7 +1,7 @@
 package com.holahmeds.ledger.entities
 
-import android.arch.lifecycle.LiveData
-import android.arch.persistence.room.*
+import androidx.lifecycle.LiveData
+import androidx.room.*
 import com.holahmeds.ledger.IntegerBacked
 import com.squareup.moshi.JsonClass
 import java.time.LocalDate

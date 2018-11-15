@@ -1,6 +1,6 @@
 package com.holahmeds.ledger
 
-import android.arch.persistence.room.TypeConverter
+import androidx.room.TypeConverter
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.JsonQualifier
 import com.squareup.moshi.ToJson

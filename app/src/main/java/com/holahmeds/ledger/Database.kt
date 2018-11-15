@@ -1,17 +1,17 @@
 package com.holahmeds.ledger
 
-import android.arch.persistence.db.SupportSQLiteDatabase
-import android.arch.persistence.room.Database
-import android.arch.persistence.room.Room
-import android.arch.persistence.room.RoomDatabase
-import android.arch.persistence.room.TypeConverters
-import android.arch.persistence.room.migration.Migration
 import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.holahmeds.ledger.entities.*
 
 @Database(entities = [Transaction::class, Tag::class, TransactionTag::class], version = 4)
 @TypeConverters(DateAdapter::class)
-abstract class LedgerDatabase: RoomDatabase() {
+abstract class LedgerDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun tagDao(): TagDao
     abstract fun transactionTagDao(): TransactionTagDao

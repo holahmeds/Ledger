@@ -1,13 +1,13 @@
 package com.holahmeds.ledger.entities
 
-import android.arch.lifecycle.LiveData
-import android.arch.persistence.room.*
+import androidx.lifecycle.LiveData
+import androidx.room.*
 
 @Entity(
         primaryKeys = ["transactionId", "tagId"],
         foreignKeys = [
             ForeignKey(entity = Transaction::class, parentColumns = ["id"], childColumns = ["transactionId"]),
-            ForeignKey(entity = Tag::class,         parentColumns = ["id"], childColumns = ["tagId"])
+            ForeignKey(entity = Tag::class, parentColumns = ["id"], childColumns = ["tagId"])
         ],
         indices = [(Index(value = ["tagId"]))]
 )

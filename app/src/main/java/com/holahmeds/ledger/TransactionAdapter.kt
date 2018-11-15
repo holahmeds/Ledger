@@ -1,13 +1,13 @@
 package com.holahmeds.ledger
 
-import android.support.design.chip.ChipDrawable
-import android.support.design.chip.ChipGroup
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.chip.ChipDrawable
+import com.google.android.material.chip.ChipGroup
 import com.holahmeds.ledger.entities.Transaction
 import kotlinx.android.synthetic.main.balance_card.view.*
 import kotlinx.android.synthetic.main.transaction_card.view.*

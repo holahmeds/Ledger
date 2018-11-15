@@ -1,7 +1,7 @@
 package com.holahmeds.ledger.entities
 
-import android.arch.lifecycle.LiveData
-import android.arch.persistence.room.*
+import androidx.lifecycle.LiveData
+import androidx.room.*
 
 @Entity(indices = [Index(value = ["text"], unique = true)])
 data class Tag(
