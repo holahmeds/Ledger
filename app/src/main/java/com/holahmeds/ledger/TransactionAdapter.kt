@@ -11,20 +11,29 @@ import com.google.android.material.chip.ChipGroup
 import com.holahmeds.ledger.entities.Transaction
 import kotlinx.android.synthetic.main.balance_card.view.*
 import kotlinx.android.synthetic.main.transaction_card.view.*
+import kotlinx.android.synthetic.main.transaction_list_subheader.view.*
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
     : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private var data: List<Transaction> = emptyList()
+    private var transactions: List<Transaction> = emptyList()
+    private var dates: MutableList<LocalDate> = mutableListOf()
+
+    private var itemMap: MutableList<Pair<Int, Int>> = mutableListOf()
+
     private var balance: Long = 0L
 
     class BalanceViewHolder(balanceCard: View) : RecyclerView.ViewHolder(balanceCard) {
         var balance: TextView = balanceCard.balance_view
     }
 
+    class SubheaderViewHolder(subheaderView: View) : RecyclerView.ViewHolder(subheaderView) {
+        val date: TextView = subheaderView.date_view
+    }
+
     class TransactionViewHolder(val transactionView: View) : RecyclerView.ViewHolder(transactionView) {
-        val date: TextView = transactionView.date
         val amount: TextView = transactionView.amount
         val category: TextView = transactionView.category
         val transactee: TextView = transactionView.transactee
@@ -33,8 +42,27 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
     }
 
     fun setData(newData: List<Transaction>) {
-        data = newData
         balance = newData.asSequence().map { transaction -> transaction.amount }.sum()
+
+        transactions = newData
+        dates.clear()
+        itemMap.clear()
+
+        if (transactions.isNotEmpty()) {
+            dates.add(transactions[0].date)
+            itemMap.add(Pair(SUBHEADER, dates.size - 1))
+
+            itemMap.add(Pair(TRANSACTION_CARD, 0))
+        }
+        for ((i, tran) in transactions.withIndex().drop(1)) {
+            if (tran.date != transactions[i - 1].date) {
+                dates.add(tran.date)
+                itemMap.add(Pair(SUBHEADER, dates.size - 1))
+            }
+
+            itemMap.add(Pair(TRANSACTION_CARD, i))
+        }
+
         notifyDataSetChanged()
     }
 
@@ -42,7 +70,7 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
         return if (position == 0) {
             BALANCE_CARD
         } else {
-            TRANSACTION_CARD
+            itemMap[position - 1].first
         }
     }
 
@@ -52,10 +80,14 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
                 val balanceCard = LayoutInflater.from(parent.context).inflate(R.layout.balance_card, parent, false)
                 BalanceViewHolder(balanceCard)
             }
-            else -> {
-                // TRANSACTION_CARD
+            TRANSACTION_CARD -> {
                 val transactionView = LayoutInflater.from(parent.context).inflate(R.layout.transaction_card, parent, false)
                 TransactionViewHolder(transactionView)
+            }
+            else -> {
+                // SUBHEADER
+                val subheaderView = LayoutInflater.from(parent.context).inflate(R.layout.transaction_list_subheader, parent, false)
+                SubheaderViewHolder(subheaderView)
             }
         }
     }
@@ -68,31 +100,17 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
             }
             TRANSACTION_CARD -> {
                 val transactionHolder = holder as TransactionViewHolder
-                val transaction = data[position - 1]
-
-                transactionHolder.date.text = transaction.date.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                val transaction = transactions[itemMap[position - 1].second]
 
                 transactionHolder.amount.text = CurrencyAdapter.amountToString(transaction.amount)
 
                 transactionHolder.category.text = transaction.category
 
-                transactionHolder.transactee.run {
-                    if (transaction.transactee != null) {
-                        visibility = View.VISIBLE
-                        text = transaction.transactee
-                    } else {
-                        visibility = View.GONE
-                    }
-                }
+                transactionHolder.transactee.text = transaction.transactee
+                setVisibility(transactionHolder.transactee, transaction.transactee != null)
 
-                transactionHolder.note.run {
-                    if (transaction.note != null) {
-                        visibility = View.VISIBLE
-                        text = transaction.note
-                    } else {
-                        visibility = View.GONE
-                    }
-                }
+                transactionHolder.note.text = transaction.note
+                setVisibility(transactionHolder.note, transaction.note != null)
 
                 transactionHolder.tags.removeAllViews()
                 for (t in transaction.tags) {
@@ -107,19 +125,33 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
 
                     transactionHolder.tags.addView(view)
                 }
+                setVisibility(transactionHolder.tags, transaction.tags.isNotEmpty())
 
                 transactionHolder.transactionView.setOnLongClickListener {
                     onItemLongClick(transaction)
                     true
                 }
             }
+            SUBHEADER -> {
+                val dateViewHolder = holder as SubheaderViewHolder
+                val date = dates[itemMap[position - 1].second]
+
+                dateViewHolder.date.text = date.format(FORMATTER)
+            }
         }
     }
 
-    override fun getItemCount() = data.size
+    private fun setVisibility(view: View, visible: Boolean) {
+        view.visibility = if (visible) { View.VISIBLE } else { View.GONE }
+    }
+
+    override fun getItemCount() = itemMap.size + 1
 
     companion object {
         private var BALANCE_CARD = 0
         private var TRANSACTION_CARD = 1
+        private var SUBHEADER = 2
+
+        private var FORMATTER = DateTimeFormatter.ofPattern("EEE d MMM yyyy")
     }
 }

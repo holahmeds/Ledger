@@ -25,7 +25,7 @@ class CurrencyAdapter {
 
     companion object {
         fun amountToString(amount: Long): String {
-            val string = amount.toString()
+            val string = String.format("%3d", amount)
             return string.substring(0, (string.length - 2)) + '.' + string.substring((string.length - 2), string.length)
         }
 
