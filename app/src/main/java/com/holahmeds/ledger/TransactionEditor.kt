@@ -32,12 +32,14 @@ class TransactionEditor : Fragment() {
         val viewModel = ViewModelProviders.of(requireActivity()).get(LedgerViewModel::class.java)
 
         var date: LocalDate = LocalDate.now()
+        updateDateView(date)
 
         val transactionID = TransactionEditorArgs.fromBundle(arguments).transactionID
         if (transactionID != 0L) {
             viewModel.getTransaction(transactionID).observe(this, Observer { transaction ->
                 if (transaction != null) {
                     date = transaction.date
+                    updateDateView(date)
 
                     if (transaction.amount > 0) {
                         chip_income.isChecked = true
@@ -53,7 +55,6 @@ class TransactionEditor : Fragment() {
             })
         }
 
-        updateDateView(date)
         date_view.setOnClickListener {
             context?.let { context ->
                 DatePickerDialog(
