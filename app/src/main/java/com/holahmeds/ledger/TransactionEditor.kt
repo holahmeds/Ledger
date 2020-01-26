@@ -12,7 +12,7 @@ import android.widget.DatePicker
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import com.holahmeds.ledger.entities.Transaction
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler
@@ -29,14 +29,14 @@ class TransactionEditor : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val viewModel = ViewModelProviders.of(requireActivity()).get(LedgerViewModel::class.java)
+        val viewModel = ViewModelProvider(requireActivity()).get(LedgerViewModel::class.java)
 
         var date: LocalDate = LocalDate.now()
         updateDateView(date)
 
-        val transactionID = TransactionEditorArgs.fromBundle(arguments).transactionID
+        val transactionID = TransactionEditorArgs.fromBundle(requireArguments()).transactionID
         if (transactionID != 0L) {
-            viewModel.getTransaction(transactionID).observe(this, Observer { transaction ->
+            viewModel.getTransaction(transactionID).observe(viewLifecycleOwner, Observer { transaction ->
                 if (transaction != null) {
                     date = transaction.date
                     updateDateView(date)
@@ -71,17 +71,17 @@ class TransactionEditor : Fragment() {
         }
 
         context?.let { context ->
-            viewModel.getAllCategories().observe(this, Observer { categories ->
+            viewModel.getAllCategories().observe(viewLifecycleOwner, Observer { categories ->
                 categories?.let {
                     category_view.setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, categories))
                 }
             })
-            viewModel.getAllTransactees().observe(this, Observer { transactees ->
+            viewModel.getAllTransactees().observe(viewLifecycleOwner, Observer { transactees ->
                 transactees?.let {
                     transactee_view.setAdapter(ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, transactees))
                 }
             })
-            viewModel.getAllTags().observe(this, Observer { tags ->
+            viewModel.getAllTags().observe(viewLifecycleOwner, Observer { tags ->
                 tags?.let {
                     val adapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, tags)
                     tags_view.setAdapter(adapter)

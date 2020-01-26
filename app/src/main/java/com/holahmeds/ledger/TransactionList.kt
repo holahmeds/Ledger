@@ -10,7 +10,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,7 +31,7 @@ class TransactionList : Fragment() {
 
         val view = inflater.inflate(R.layout.fragment_transaction_list, container, false)
 
-        val viewModel = ViewModelProviders.of(requireActivity()).get(LedgerViewModel::class.java)
+        val viewModel = ViewModelProvider(requireActivity()).get(LedgerViewModel::class.java)
 
         val transactionAdapter = TransactionAdapter { transaction: Transaction ->
             val dialog = TransactionListMenu()
@@ -48,11 +48,11 @@ class TransactionList : Fragment() {
                 }
             })
 
-            dialog.show(fragmentManager, "transactionlistmenu")
+            dialog.show(parentFragmentManager, "transactionlistmenu")
         }
 
         val liveTransactions = viewModel.getTransactions()
-        liveTransactions.observe(this, Observer { list ->
+        liveTransactions.observe(viewLifecycleOwner, Observer { list ->
             transactions = list
             transactionAdapter.setData(list)
         })
