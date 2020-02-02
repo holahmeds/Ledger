@@ -96,6 +96,10 @@ class TransactionList : Fragment() {
                 }
                 return true
             }
+            R.id.chart -> {
+                val navController = NavHostFragment.findNavController(this)
+                navController.navigate(R.id.chartFragment)
+            }
         }
 
         return false

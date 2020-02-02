@@ -8,6 +8,8 @@ import androidx.lifecycle.Transformations
 import com.holahmeds.ledger.entities.Tag
 import com.holahmeds.ledger.entities.Transaction
 import com.holahmeds.ledger.entities.TransactionTag
+import com.holahmeds.ledger.entities.TransactionTotals
+import java.time.YearMonth
 import java.util.stream.Collectors
 
 class LedgerViewModel(application: Application) : AndroidViewModel(application) {
@@ -18,6 +20,8 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
 
     private val categories: LiveData<List<String>>
     private val transactees: LiveData<List<String>>
+
+    private val monthlyTotal: LiveData<List<TransactionTotals>>
 
     init {
         val transactionDao = database.transactionDao()
@@ -36,6 +40,21 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
 
         categories = transactionDao.getAllCategories()
         transactees = transactionDao.getAllTransactees()
+
+        monthlyTotal = Transformations.map(transactionDao.getAll()) { transactions ->
+            val aggregates: Map<YearMonth, TransactionTotals> = transactions
+                    .groupingBy { transaction -> YearMonth.from(transaction.date) }
+                    .aggregate { key, accumulator, element, _ ->
+                        val ac = accumulator ?: TransactionTotals(key, 0, 0)
+                        if (element.amount > 0) {
+                            ac.totalIncome += element.amount
+                        } else {
+                            ac.totalExpense -= element.amount
+                        }
+                        ac
+                    }
+            aggregates.values.toList()
+        }
     }
 
     fun getTransaction(transactionId: Long): LiveData<Transaction> {
@@ -50,6 +69,8 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
     fun getTransactions(): LiveData<List<Transaction>> {
         return transactionsWithTags
     }
+
+    fun getMonthlyTotals() = monthlyTotal
 
     fun updateTransaction(transaction: Transaction) {
         UpdateTransaction(database, transaction).execute()

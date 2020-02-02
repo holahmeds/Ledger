@@ -13,4 +13,6 @@
     <string name="expense">Expense</string>
     <string name="export_to_file">Export to file</string>
     <string name="balance">Balance</string>
+
+    <string name="statistics">Statistics</string>
 </resources>

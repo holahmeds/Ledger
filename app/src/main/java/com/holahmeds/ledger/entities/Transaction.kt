@@ -5,6 +5,7 @@ import androidx.room.*
 import com.holahmeds.ledger.IntegerBacked
 import com.squareup.moshi.JsonClass
 import java.time.LocalDate
+import java.time.YearMonth
 
 @Entity(tableName = "transaction_table")
 @JsonClass(generateAdapter = true)
@@ -18,6 +19,10 @@ class Transaction(@PrimaryKey(autoGenerate = true) var id: Long,
 
     constructor(id: Long, date: LocalDate, amount: Long, category: String, transactee: String?, note: String?) : this(id, date, amount, category, transactee, note, emptyList())
 }
+
+class TransactionTotals(val month: YearMonth,
+                        var totalIncome: Long,
+                        var totalExpense: Long)
 
 @Dao
 interface TransactionDao {
