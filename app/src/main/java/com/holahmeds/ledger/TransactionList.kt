@@ -38,7 +38,7 @@ class TransactionList : Fragment() {
             dialog.setListener(object : TransactionListMenu.ItemSelectedListener {
                 override fun onEditSelected() {
                     val action = TransactionListDirections.actionEditFromList()
-                    action.setTransactionID(transaction.id)
+                    action.transactionID = transaction.id
                     val navController = NavHostFragment.findNavController(this@TransactionList)
                     navController.navigate(action)
                 }
