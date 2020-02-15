@@ -27,7 +27,9 @@
                 android:layout_height="wrap_content"
                 android:focusable="false"
                 android:hint="@string/date_label"
-                android:inputType="date" />
+                android:imeOptions="actionNext"
+                android:inputType="date"
+                android:nextFocusForward="@id/category_view" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -45,7 +47,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/category_label"
+                android:imeOptions="actionNext"
                 android:inputType="textCapWords"
+                android:nextFocusForward="@id/transactee_view"
                 android:padding="12dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -63,7 +67,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/transactee_label"
+                android:imeOptions="actionNext"
                 android:inputType="textCapWords"
+                android:nextFocusForward="@id/amount_view"
                 android:padding="12dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -82,7 +88,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/amount_label"
-                android:inputType="numberDecimal" />
+                android:imeOptions="actionNext"
+                android:inputType="numberDecimal"
+                android:nextFocusForward="@id/note_view" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.chip.ChipGroup
