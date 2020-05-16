@@ -9,6 +9,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
@@ -31,7 +32,7 @@ class ChartFragment : Fragment() {
             val incomeEntries = mutableListOf<BarEntry>()
             val expenseEntries = mutableListOf<BarEntry>()
 
-            for (transaction in list.take(12)) {
+            for (transaction in list) {
                 if (transaction.totalIncome > 0) {
                     incomeEntries.add(BarEntry(transaction.month.let { it.year * 12 + it.monthValue - 1 }.toFloat(), transaction.totalIncome.toFloat()))
                 }
@@ -39,6 +40,11 @@ class ChartFragment : Fragment() {
                     expenseEntries.add(BarEntry(transaction.month.let { it.year * 12 + it.monthValue - 1 }.toFloat(), transaction.totalExpense.toFloat()))
                 }
             }
+
+            // Entries need to be sorted by x
+            // https://github.com/PhilJay/MPAndroidChart/issues/4131
+            incomeEntries.sortBy { barEntry -> barEntry.x }
+            expenseEntries.sortBy { barEntry -> barEntry.x }
 
             val incomeDataSet = BarDataSet(incomeEntries, "Income")
             incomeDataSet.setColors(intArrayOf(R.color.graphIncome), context)
@@ -52,11 +58,17 @@ class ChartFragment : Fragment() {
             fragment.chart.apply {
                 data = barData
                 invalidate()
+
+                // start at the end of the graph
+                val initPos = data.xMax
+                // default zoom shows 12 entries
+                val initScale = (data.xMax - data.xMin + 1) / 12f
+                zoom(initScale, 1f, initPos, 0f, YAxis.AxisDependency.LEFT)
             }
         })
 
         fragment.chart.description = null
-        fragment.chart.setTouchEnabled(false)
+        fragment.chart.isScaleYEnabled = false
 
         val xAxis = fragment.chart.xAxis
         xAxis.valueFormatter = MonthFormatter()
