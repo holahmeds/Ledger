@@ -33,12 +33,8 @@ class ChartFragment : Fragment() {
             val expenseEntries = mutableListOf<BarEntry>()
 
             for (transaction in list) {
-                if (transaction.totalIncome > 0) {
-                    incomeEntries.add(BarEntry(transaction.month.let { it.year * 12 + it.monthValue - 1 }.toFloat(), transaction.totalIncome.toFloat()))
-                }
-                if (transaction.totalExpense > 0) {
-                    expenseEntries.add(BarEntry(transaction.month.let { it.year * 12 + it.monthValue - 1 }.toFloat(), transaction.totalExpense.toFloat()))
-                }
+                incomeEntries.add(BarEntry(transaction.month.let { it.year * 12 + it.monthValue - 1 }.toFloat(), transaction.totalIncome.toFloat()))
+                expenseEntries.add(BarEntry(transaction.month.let { it.year * 12 + it.monthValue - 1 }.toFloat(), transaction.totalExpense.toFloat()))
             }
 
             // Entries need to be sorted by x
@@ -57,13 +53,17 @@ class ChartFragment : Fragment() {
 
             fragment.chart.apply {
                 data = barData
+                data.barWidth = 0.45f
+                groupBars(data.xMin - 0.5f, 0.08f, 0.01f)
                 invalidate()
 
                 // start at the end of the graph
                 val initPos = data.xMax
                 // default zoom shows 12 entries
-                val initScale = (data.xMax - data.xMin + 1) / 12f
+                val initScale = (data.xMax - data.xMin + 6) / 24f
                 zoom(initScale, 1f, initPos, 0f, YAxis.AxisDependency.LEFT)
+
+                setVisibleXRangeMaximum(12f)
             }
         })
 
@@ -73,11 +73,14 @@ class ChartFragment : Fragment() {
         val xAxis = fragment.chart.xAxis
         xAxis.valueFormatter = MonthFormatter()
         xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.setDrawGridLines(false)
+        xAxis.granularity = 1f
 
         fragment.chart.axisRight.isEnabled = false
         val yAxis = fragment.chart.axisLeft
         yAxis.valueFormatter = currencyFormatter
         yAxis.axisMinimum = 0f
+        yAxis.setDrawGridLines(false)
 
         return fragment
     }
