@@ -34,8 +34,7 @@ class TransactionList : Fragment() {
         val viewModel = ViewModelProvider(requireActivity()).get(LedgerViewModel::class.java)
 
         val transactionAdapter = TransactionAdapter { transaction: Transaction ->
-            val dialog = TransactionListMenu()
-            dialog.setListener(object : TransactionListMenu.ItemSelectedListener {
+            val dialog = TransactionListMenu(object : TransactionListMenu.ItemSelectedListener {
                 override fun onEditSelected() {
                     val action = TransactionListDirections.actionEditFromList()
                     action.transactionID = transaction.id
