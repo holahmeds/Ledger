@@ -84,7 +84,7 @@
             "columnNames": [
               "text"
             ],
-            "createSql": "CREATE UNIQUE INDEX `index_Tag_text` ON `${TABLE_NAME}` (`text`)"
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Tag_text` ON `${TABLE_NAME}` (`text`)"
           }
         ],
         "foreignKeys": []
@@ -120,7 +120,7 @@
             "columnNames": [
               "tagId"
             ],
-            "createSql": "CREATE  INDEX `index_TransactionTag_tagId` ON `${TABLE_NAME}` (`tagId`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_TransactionTag_tagId` ON `${TABLE_NAME}` (`tagId`)"
           }
         ],
         "foreignKeys": [
@@ -149,9 +149,10 @@
         ]
       }
     ],
+    "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"b4032e6ed2aaddf6dc33e967853751d4\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b4032e6ed2aaddf6dc33e967853751d4')"
     ]
   }
 }

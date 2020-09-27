@@ -4,6 +4,7 @@ import androidx.room.TypeConverter
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.JsonQualifier
 import com.squareup.moshi.ToJson
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -65,5 +66,17 @@ class DateAdapter {
         fun stringToDate(dateString: String): LocalDate {
             return LocalDate.parse(dateString, FORMATTER)
         }
+    }
+}
+
+class BigDecimalConverter {
+    @TypeConverter
+    fun fromBigDecimal(bigDecimal: BigDecimal): Long {
+        return bigDecimal.movePointRight(2).toLong()
+    }
+
+    @TypeConverter
+    fun toBigDecimal(long: Long): BigDecimal {
+        return BigDecimal(long).movePointLeft(2)
     }
 }

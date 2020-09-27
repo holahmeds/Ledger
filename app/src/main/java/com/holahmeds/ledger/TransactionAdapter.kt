@@ -12,6 +12,7 @@ import com.holahmeds.ledger.entities.Transaction
 import kotlinx.android.synthetic.main.balance_card.view.*
 import kotlinx.android.synthetic.main.transaction_card.view.*
 import kotlinx.android.synthetic.main.transaction_list_subheader.view.*
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -23,7 +24,7 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
 
     private var itemMap: MutableList<Pair<Int, Int>> = mutableListOf()
 
-    private var balance: Long = 0L
+    private var balance: BigDecimal = BigDecimal.ZERO
 
     class BalanceViewHolder(balanceCard: View) : RecyclerView.ViewHolder(balanceCard) {
         var balance: TextView = balanceCard.balance_view
@@ -42,7 +43,9 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
     }
 
     fun setData(newData: List<Transaction>) {
-        balance = newData.asSequence().map { transaction -> transaction.amount }.sum()
+        balance = newData.asSequence()
+                .map { transaction -> transaction.amount }
+                .reduce { acc, amount -> acc + amount }
 
         transactions = newData
         dates.clear()
@@ -96,13 +99,13 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
         when (holder.itemViewType) {
             BALANCE_CARD -> {
                 val balanceHolder = holder as BalanceViewHolder
-                balanceHolder.balance.text = CurrencyAdapter.amountToString(balance)
+                balanceHolder.balance.text = balance.toPlainString()
             }
             TRANSACTION_CARD -> {
                 val transactionHolder = holder as TransactionViewHolder
                 val transaction = transactions[itemMap[position - 1].second]
 
-                transactionHolder.amount.text = CurrencyAdapter.amountToString(transaction.amount)
+                transactionHolder.amount.text = transaction.amount.toPlainString()
 
                 transactionHolder.category.text = transaction.category
 

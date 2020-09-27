@@ -2,8 +2,8 @@ package com.holahmeds.ledger.entities
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.holahmeds.ledger.IntegerBacked
 import com.squareup.moshi.JsonClass
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -11,18 +11,18 @@ import java.time.YearMonth
 @JsonClass(generateAdapter = true)
 class Transaction(@PrimaryKey(autoGenerate = true) var id: Long,
                   val date: LocalDate,
-                  @IntegerBacked val amount: Long,
+                  val amount: BigDecimal,
                   val category: String,
                   val transactee: String?,
                   val note: String?,
                   @Ignore var tags: List<String>) {
 
-    constructor(id: Long, date: LocalDate, amount: Long, category: String, transactee: String?, note: String?) : this(id, date, amount, category, transactee, note, emptyList())
+    constructor(id: Long, date: LocalDate, amount: BigDecimal, category: String, transactee: String?, note: String?) : this(id, date, amount, category, transactee, note, emptyList())
 }
 
 class TransactionTotals(val month: YearMonth,
-                        var totalIncome: Long,
-                        var totalExpense: Long)
+                        var totalIncome: BigDecimal,
+                        var totalExpense: BigDecimal)
 
 @Dao
 interface TransactionDao {

@@ -9,6 +9,7 @@ import com.holahmeds.ledger.entities.Tag
 import com.holahmeds.ledger.entities.Transaction
 import com.holahmeds.ledger.entities.TransactionTag
 import com.holahmeds.ledger.entities.TransactionTotals
+import java.math.BigDecimal
 import java.time.YearMonth
 import java.util.stream.Collectors
 
@@ -45,8 +46,9 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
             val aggregates: Map<YearMonth, TransactionTotals> = transactions
                     .groupingBy { transaction -> YearMonth.from(transaction.date) }
                     .aggregate { key, accumulator, element, _ ->
-                        val ac = accumulator ?: TransactionTotals(key, 0, 0)
-                        if (element.amount > 0) {
+                        val ac = accumulator
+                                ?: TransactionTotals(key, BigDecimal.ZERO, BigDecimal.ZERO)
+                        if (element.amount > BigDecimal.ZERO) {
                             ac.totalIncome += element.amount
                         } else {
                             ac.totalExpense -= element.amount

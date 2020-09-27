@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.holahmeds.ledger.entities.*
 
 @Database(entities = [Transaction::class, Tag::class, TransactionTag::class], version = 4)
-@TypeConverters(DateAdapter::class)
+@TypeConverters(DateAdapter::class, BigDecimalConverter::class)
 abstract class LedgerDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun tagDao(): TagDao

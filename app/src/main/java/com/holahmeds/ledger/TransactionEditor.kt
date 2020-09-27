@@ -17,6 +17,7 @@ import androidx.navigation.fragment.NavHostFragment
 import com.holahmeds.ledger.entities.Transaction
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler
 import kotlinx.android.synthetic.main.fragment_transaction_editor.*
+import java.math.BigDecimal
 import java.time.LocalDate
 
 class TransactionEditor : Fragment() {
@@ -41,10 +42,10 @@ class TransactionEditor : Fragment() {
                     date = transaction.date
                     updateDateView(date)
 
-                    if (transaction.amount > 0) {
+                    if (transaction.amount > BigDecimal.ZERO) {
                         chip_income.isChecked = true
                     }
-                    amount_view.setText(CurrencyAdapter.amountToString(transaction.amount).replace("-", ""))
+                    amount_view.setText(transaction.amount.toPlainString())
 
                     category_view.setText(transaction.category)
                     transactee_view.setText(transaction.transactee)
@@ -102,10 +103,12 @@ class TransactionEditor : Fragment() {
                 return@setOnClickListener
             }
 
-            val amount = CurrencyAdapter.stringToAmount(amount_view.text.toString()) * if (chip_expense.isChecked) {
-                -1
-            } else {
-                1
+            val amount = BigDecimal(amount_view.text.toString()).let {
+                if (chip_expense.isChecked) {
+                    it.negate()
+                } else {
+                    it
+                }
             }
             val category = category_view.text.toString()
             val transactee = transactee_view.text.let { text ->
