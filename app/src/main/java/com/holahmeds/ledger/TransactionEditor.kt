@@ -44,8 +44,10 @@ class TransactionEditor : Fragment() {
 
                     if (transaction.amount > BigDecimal.ZERO) {
                         chip_income.isChecked = true
+                        amount_view.setText(transaction.amount.toPlainString())
+                    } else {
+                        amount_view.setText(transaction.amount.negate().toPlainString())
                     }
-                    amount_view.setText(transaction.amount.toPlainString())
 
                     category_view.setText(transaction.category)
                     transactee_view.setText(transaction.transactee)
