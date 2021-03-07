@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -32,7 +32,7 @@ class TransactionList : Fragment() {
 
         val binding = FragmentTransactionListBinding.inflate(inflater, container, false)
 
-        val viewModel = ViewModelProvider(requireActivity()).get(LedgerViewModel::class.java)
+        val viewModel: LedgerViewModel by activityViewModels()
 
         val transactionAdapter = TransactionAdapter { transaction: Transaction ->
             val dialog = TransactionListMenu(object : TransactionListMenu.ItemSelectedListener {

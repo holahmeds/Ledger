@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
@@ -24,7 +24,7 @@ class ChartFragment : Fragment() {
         // Inflate the layout for this fragment
         val binding = FragmentChartBinding.inflate(inflater, container, false)
 
-        val viewModel = ViewModelProvider(requireActivity()).get(LedgerViewModel::class.java)
+        val viewModel: LedgerViewModel by activityViewModels()
 
         viewModel.getMonthlyTotals().observe(viewLifecycleOwner, { list ->
             val incomeEntries = mutableListOf<BarEntry>()

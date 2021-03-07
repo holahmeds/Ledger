@@ -11,7 +11,7 @@ import android.widget.ArrayAdapter
 import android.widget.DatePicker
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.NavHostFragment
 import com.holahmeds.ledger.adapters.DateAdapter
 import com.holahmeds.ledger.databinding.FragmentTransactionEditorBinding
@@ -34,7 +34,7 @@ class TransactionEditor : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val viewModel = ViewModelProvider(requireActivity()).get(LedgerViewModel::class.java)
+        val viewModel: LedgerViewModel by activityViewModels()
 
         var date: LocalDate = LocalDate.now()
         updateDateView(date)
