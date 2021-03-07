@@ -9,11 +9,12 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.holahmeds.ledger.adapters.CurrencyAdapter
+import com.holahmeds.ledger.adapters.DateAdapter
 import com.holahmeds.ledger.entities.Transaction
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
@@ -51,7 +52,7 @@ class TransactionList : Fragment() {
         }
 
         val liveTransactions = viewModel.getTransactions()
-        liveTransactions.observe(viewLifecycleOwner, Observer { list ->
+        liveTransactions.observe(viewLifecycleOwner, { list ->
             transactions = list
             transactionAdapter.setData(list)
         })

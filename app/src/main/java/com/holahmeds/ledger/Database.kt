@@ -7,6 +7,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.holahmeds.ledger.adapters.BigDecimalConverter
+import com.holahmeds.ledger.adapters.DateAdapter
 import com.holahmeds.ledger.entities.*
 
 @Database(entities = [Transaction::class, Tag::class, TransactionTag::class], version = 4)

@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.XAxis
@@ -14,6 +13,7 @@ import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.holahmeds.ledger.adapters.CurrencyAdapter
 import kotlinx.android.synthetic.main.fragment_chart.view.*
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -28,7 +28,7 @@ class ChartFragment : Fragment() {
         val viewModel = ViewModelProvider(requireActivity()).get(LedgerViewModel::class.java)
 
         val currencyFormatter = CurrencyFormatter()
-        viewModel.getMonthlyTotals().observe(viewLifecycleOwner, Observer { list ->
+        viewModel.getMonthlyTotals().observe(viewLifecycleOwner, { list ->
             val incomeEntries = mutableListOf<BarEntry>()
             val expenseEntries = mutableListOf<BarEntry>()
 

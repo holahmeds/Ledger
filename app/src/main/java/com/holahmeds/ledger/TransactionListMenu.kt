@@ -1,7 +1,6 @@
 package com.holahmeds.ledger
 
 import android.app.AlertDialog
-import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
@@ -12,7 +11,7 @@ class TransactionListMenu(private val listener: ItemSelectedListener) : DialogFr
         fun onDeleteSelected()
     }
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+    override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         val builder = AlertDialog.Builder(activity)
         builder.setItems(arrayOf("Edit", "Delete")) { _: DialogInterface, i: Int ->
             when (i) {
