@@ -14,17 +14,21 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import com.holahmeds.ledger.adapters.DateAdapter
+import com.holahmeds.ledger.databinding.FragmentTransactionEditorBinding
 import com.holahmeds.ledger.entities.Transaction
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler
-import kotlinx.android.synthetic.main.fragment_transaction_editor.*
 import java.math.BigDecimal
 import java.time.LocalDate
 
 class TransactionEditor : Fragment() {
+    private var _binding: FragmentTransactionEditorBinding? = null
+    private val binding get() = _binding!!
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+                              savedInstanceState: Bundle?): View {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_transaction_editor, container, false)
+        _binding = FragmentTransactionEditorBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -43,22 +47,22 @@ class TransactionEditor : Fragment() {
                     updateDateView(date)
 
                     if (transaction.amount > BigDecimal.ZERO) {
-                        chip_income.isChecked = true
-                        amount_view.setText(transaction.amount.toPlainString())
+                        binding.chipIncome.isChecked = true
+                        binding.amountView.setText(transaction.amount.toPlainString())
                     } else {
-                        amount_view.setText(transaction.amount.negate().toPlainString())
+                        binding.amountView.setText(transaction.amount.negate().toPlainString())
                     }
 
-                    category_view.setText(transaction.category)
-                    transactee_view.setText(transaction.transactee)
-                    note_view.setText(transaction.note)
+                    binding.categoryView.setText(transaction.category)
+                    binding.transacteeView.setText(transaction.transactee)
+                    binding.noteView.setText(transaction.note)
 
-                    tags_view.setText(transaction.tags)
+                    binding.tagsView.setText(transaction.tags)
                 }
             })
         }
 
-        date_view.setOnClickListener {
+        binding.dateView.setOnClickListener {
             context?.let { context ->
                 DatePickerDialog(
                         context,
@@ -76,58 +80,58 @@ class TransactionEditor : Fragment() {
         context?.let { context ->
             viewModel.getAllCategories().observe(viewLifecycleOwner, { categories ->
                 categories?.let {
-                    category_view.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, categories))
+                    binding.categoryView.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, categories))
                 }
             })
             viewModel.getAllTransactees().observe(viewLifecycleOwner, { transactees ->
                 transactees?.let {
-                    transactee_view.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, transactees))
+                    binding.transacteeView.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, transactees))
                 }
             })
             viewModel.getAllTags().observe(viewLifecycleOwner, { tags ->
                 tags?.let {
                     val adapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, tags)
-                    tags_view.setAdapter(adapter)
+                    binding.tagsView.setAdapter(adapter)
                 }
             })
         }
 
         addErrorListeners()
 
-        tags_view.apply {
+        binding.tagsView.apply {
             addChipTerminator('\n', ChipTerminatorHandler.BEHAVIOR_CHIPIFY_ALL)
             enableEditChipOnTouch(true, true)
         }
 
-        save_button.setOnClickListener {
+        binding.saveButton.setOnClickListener {
             if (inputHasErrors()) {
                 Toast.makeText(context, "Invalid data", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
 
-            val amount = BigDecimal(amount_view.text.toString()).let {
-                if (chip_expense.isChecked) {
+            val amount = BigDecimal(binding.amountView.text.toString()).let {
+                if (binding.chipExpense.isChecked) {
                     it.negate()
                 } else {
                     it
                 }
             }
-            val category = category_view.text.toString()
-            val transactee = transactee_view.text.let { text ->
+            val category = binding.categoryView.text.toString()
+            val transactee = binding.transacteeView.text.let { text ->
                 if (text.isNullOrBlank()) {
                     null
                 } else {
                     text.toString()
                 }
             }
-            val note = note_view.text.let { text ->
+            val note = binding.noteView.text.let { text ->
                 if (text.isNullOrBlank()) {
                     null
                 } else {
                     text.toString()
                 }
             }
-            val tags = tags_view.let { view ->
+            val tags = binding.tagsView.let { view ->
                 view.chipifyAllUnterminatedTokens()
                 view.chipValues
             }
@@ -141,7 +145,7 @@ class TransactionEditor : Fragment() {
     }
 
     private fun updateCategoryError() {
-        category_layout.error = if (category_view.text.isNullOrBlank()) {
+        binding.categoryLayout.error = if (binding.categoryView.text.isNullOrBlank()) {
             getString(R.string.category_error)
         } else {
             null
@@ -151,7 +155,7 @@ class TransactionEditor : Fragment() {
     private fun updateAmountError() {
         val amountRegex = Regex("\\d+(\\.\\d{0,2})?")
 
-        amount_layout.error = if (!amount_view.text.toString().matches(amountRegex)) {
+        binding.amountLayout.error = if (!binding.amountView.text.toString().matches(amountRegex)) {
             getString(R.string.amount_error)
         } else {
             null
@@ -161,18 +165,18 @@ class TransactionEditor : Fragment() {
     private fun inputHasErrors(): Boolean {
         updateCategoryError()
         updateAmountError()
-        return amount_layout.error != null || category_layout.error != null
+        return binding.amountLayout.error != null || binding.categoryLayout.error != null
     }
 
     private fun addErrorListeners() {
-        category_view.addTextChangedListener(object : TextWatcher {
+        binding.categoryView.addTextChangedListener(object : TextWatcher {
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun afterTextChanged(text: Editable?) {
                 updateCategoryError()
             }
         })
-        amount_view.addTextChangedListener(object : TextWatcher {
+        binding.amountView.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun afterTextChanged(text: Editable?) {
@@ -182,6 +186,6 @@ class TransactionEditor : Fragment() {
     }
 
     private fun updateDateView(date: LocalDate) {
-        date_view.setText(DateAdapter.dateToString(date))
+        binding.dateView.setText(DateAdapter.dateToString(date))
     }
 }

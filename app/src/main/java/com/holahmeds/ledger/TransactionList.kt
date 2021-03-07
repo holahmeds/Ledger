@@ -15,11 +15,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.holahmeds.ledger.adapters.BigDecimalAdapter
 import com.holahmeds.ledger.adapters.DateAdapter
+import com.holahmeds.ledger.databinding.FragmentTransactionListBinding
 import com.holahmeds.ledger.entities.Transaction
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import kotlinx.android.synthetic.main.fragment_transaction_list.view.*
 import java.io.File
 
 class TransactionList : Fragment() {
@@ -27,10 +27,10 @@ class TransactionList : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+                              savedInstanceState: Bundle?): View {
         setHasOptionsMenu(true)
 
-        val view = inflater.inflate(R.layout.fragment_transaction_list, container, false)
+        val binding = FragmentTransactionListBinding.inflate(inflater, container, false)
 
         val viewModel = ViewModelProvider(requireActivity()).get(LedgerViewModel::class.java)
 
@@ -58,27 +58,27 @@ class TransactionList : Fragment() {
         })
 
         // Set the adapter
-        with(view.transaction_list) {
+        with(binding.transactionList) {
             layoutManager = LinearLayoutManager(context)
             adapter = transactionAdapter
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     if (dy > 0) {
-                        view.new_transaction_fab.hide()
+                        binding.newTransactionFab.hide()
                     } else if (dy < 0) {
-                        view.new_transaction_fab.show()
+                        binding.newTransactionFab.show()
                     }
                 }
             })
         }
 
 
-        view.new_transaction_fab.setOnClickListener {
+        binding.newTransactionFab.setOnClickListener {
             val navController = NavHostFragment.findNavController(this)
             navController.navigate(R.id.transactionEditor)
         }
 
-        return view
+        return binding.root
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

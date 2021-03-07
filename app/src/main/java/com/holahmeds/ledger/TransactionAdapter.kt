@@ -8,10 +8,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.ChipDrawable
 import com.google.android.material.chip.ChipGroup
+import com.holahmeds.ledger.databinding.BalanceCardBinding
+import com.holahmeds.ledger.databinding.TransactionCardBinding
+import com.holahmeds.ledger.databinding.TransactionListSubheaderBinding
 import com.holahmeds.ledger.entities.Transaction
-import kotlinx.android.synthetic.main.balance_card.view.*
-import kotlinx.android.synthetic.main.transaction_card.view.*
-import kotlinx.android.synthetic.main.transaction_list_subheader.view.*
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -26,20 +26,21 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
 
     private var balance: BigDecimal = BigDecimal.ZERO
 
-    class BalanceViewHolder(balanceCard: View) : RecyclerView.ViewHolder(balanceCard) {
-        var balance: TextView = balanceCard.balance_view
+    class BalanceViewHolder(binding: BalanceCardBinding) : RecyclerView.ViewHolder(binding.root) {
+        var balance: TextView = binding.balanceView
     }
 
-    class SubheaderViewHolder(subheaderView: View) : RecyclerView.ViewHolder(subheaderView) {
-        val date: TextView = subheaderView.date_view
+    class SubheaderViewHolder(binding: TransactionListSubheaderBinding) : RecyclerView.ViewHolder(binding.root) {
+        val date: TextView = binding.dateView
     }
 
-    class TransactionViewHolder(val transactionView: View) : RecyclerView.ViewHolder(transactionView) {
-        val amount: TextView = transactionView.amount
-        val category: TextView = transactionView.category
-        val transactee: TextView = transactionView.transactee
-        val note: TextView = transactionView.note
-        val tags: ChipGroup = transactionView.tags
+    class TransactionViewHolder(binding: TransactionCardBinding) : RecyclerView.ViewHolder(binding.root) {
+        val transactionView: View = binding.root
+        val amount: TextView = binding.amount
+        val category: TextView = binding.category
+        val transactee: TextView = binding.transactee
+        val note: TextView = binding.note
+        val tags: ChipGroup = binding.tags
     }
 
     fun setData(newData: List<Transaction>) {
@@ -81,16 +82,19 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
         return when (viewType) {
             BALANCE_CARD -> {
                 val balanceCard = LayoutInflater.from(parent.context).inflate(R.layout.balance_card, parent, false)
-                BalanceViewHolder(balanceCard)
+                val binding = BalanceCardBinding.bind(balanceCard)
+                BalanceViewHolder(binding)
             }
             TRANSACTION_CARD -> {
                 val transactionView = LayoutInflater.from(parent.context).inflate(R.layout.transaction_card, parent, false)
-                TransactionViewHolder(transactionView)
+                val binding = TransactionCardBinding.bind(transactionView)
+                TransactionViewHolder(binding)
             }
             else -> {
                 // SUBHEADER
                 val subheaderView = LayoutInflater.from(parent.context).inflate(R.layout.transaction_list_subheader, parent, false)
-                SubheaderViewHolder(subheaderView)
+                val binding = TransactionListSubheaderBinding.bind(subheaderView)
+                SubheaderViewHolder(binding)
             }
         }
     }

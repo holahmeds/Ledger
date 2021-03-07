@@ -13,16 +13,16 @@ import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
-import kotlinx.android.synthetic.main.fragment_chart.view.*
+import com.holahmeds.ledger.databinding.FragmentChartBinding
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 class ChartFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+                              savedInstanceState: Bundle?): View {
         // Inflate the layout for this fragment
-        val fragment = inflater.inflate(R.layout.fragment_chart, container, false)
+        val binding = FragmentChartBinding.inflate(inflater, container, false)
 
         val viewModel = ViewModelProvider(requireActivity()).get(LedgerViewModel::class.java)
 
@@ -47,7 +47,7 @@ class ChartFragment : Fragment() {
 
             val barData = BarData(incomeDataSet, expenseDataSet)
 
-            fragment.chart.apply {
+            binding.chart.apply {
                 data = barData
                 data.barWidth = 0.45f
                 groupBars(data.xMin - 0.5f, 0.08f, 0.01f)
@@ -63,21 +63,21 @@ class ChartFragment : Fragment() {
             }
         })
 
-        fragment.chart.description = null
-        fragment.chart.isScaleYEnabled = false
+        binding.chart.description = null
+        binding.chart.isScaleYEnabled = false
 
-        val xAxis = fragment.chart.xAxis
+        val xAxis = binding.chart.xAxis
         xAxis.valueFormatter = MonthFormatter()
         xAxis.position = XAxis.XAxisPosition.BOTTOM
         xAxis.setDrawGridLines(false)
         xAxis.granularity = 1f
 
-        fragment.chart.axisRight.isEnabled = false
-        val yAxis = fragment.chart.axisLeft
+        binding.chart.axisRight.isEnabled = false
+        val yAxis = binding.chart.axisLeft
         yAxis.axisMinimum = 0f
         yAxis.setDrawGridLines(false)
 
-        return fragment
+        return binding.root
     }
 }
 
