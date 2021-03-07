@@ -1,7 +1,8 @@
 package com.holahmeds.ledger.entities
 
-import androidx.lifecycle.LiveData
-import androidx.room.*
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 
 @Entity(
         primaryKeys = ["transactionId", "tagId"],
@@ -12,24 +13,3 @@ import androidx.room.*
         indices = [(Index(value = ["tagId"]))]
 )
 data class TransactionTag(val transactionId: Long, val tagId: Long)
-
-@Dao
-interface TransactionTagDao {
-    @Query("SELECT text FROM tag INNER JOIN transactiontag ON tag.id=transactiontag.tagId WHERE transactiontag.transactionId=:transactionId")
-    fun getTagsForTransaction(transactionId: Long): LiveData<List<String>>
-
-    @Query("SELECT text FROM tag INNER JOIN transactiontag ON tag.id=transactiontag.tagId WHERE transactiontag.transactionId=:transactionId")
-    fun getTagsForTransactionSync(transactionId: Long): List<String>
-
-    @Insert
-    fun add(transactionTag: TransactionTag): Long
-
-    @Delete
-    fun delete(transactionTag: TransactionTag)
-
-    @Query("DELETE FROM transactiontag WHERE transactionId IN(:transactionIds)")
-    fun delete(transactionIds: List<Long>)
-
-    @Query("DELETE FROM transactiontag WHERE transactionId=:transactionId AND tagId IN(:tagIds)")
-    fun delete(transactionId: Long, tagIds: List<Long>)
-}

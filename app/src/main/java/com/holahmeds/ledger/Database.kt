@@ -9,7 +9,12 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.holahmeds.ledger.adapters.BigDecimalConverter
 import com.holahmeds.ledger.adapters.DateAdapter
-import com.holahmeds.ledger.entities.*
+import com.holahmeds.ledger.dao.TagDao
+import com.holahmeds.ledger.dao.TransactionDao
+import com.holahmeds.ledger.dao.TransactionTagDao
+import com.holahmeds.ledger.entities.Tag
+import com.holahmeds.ledger.entities.Transaction
+import com.holahmeds.ledger.entities.TransactionTag
 
 @Database(entities = [Transaction::class, Tag::class, TransactionTag::class], version = 4)
 @TypeConverters(DateAdapter::class, BigDecimalConverter::class)
