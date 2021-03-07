@@ -13,7 +13,6 @@ import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
-import com.holahmeds.ledger.adapters.CurrencyAdapter
 import kotlinx.android.synthetic.main.fragment_chart.view.*
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -27,7 +26,6 @@ class ChartFragment : Fragment() {
 
         val viewModel = ViewModelProvider(requireActivity()).get(LedgerViewModel::class.java)
 
-        val currencyFormatter = CurrencyFormatter()
         viewModel.getMonthlyTotals().observe(viewLifecycleOwner, { list ->
             val incomeEntries = mutableListOf<BarEntry>()
             val expenseEntries = mutableListOf<BarEntry>()
@@ -44,9 +42,7 @@ class ChartFragment : Fragment() {
 
             val incomeDataSet = BarDataSet(incomeEntries, "Income")
             incomeDataSet.setColors(intArrayOf(R.color.graphIncome), context)
-            incomeDataSet.valueFormatter = currencyFormatter
             val expenseDataSet = BarDataSet(expenseEntries, "Expense")
-            expenseDataSet.valueFormatter = currencyFormatter
             expenseDataSet.setColors(intArrayOf(R.color.graphExpense), context)
 
             val barData = BarData(incomeDataSet, expenseDataSet)
@@ -78,7 +74,6 @@ class ChartFragment : Fragment() {
 
         fragment.chart.axisRight.isEnabled = false
         val yAxis = fragment.chart.axisLeft
-        yAxis.valueFormatter = currencyFormatter
         yAxis.axisMinimum = 0f
         yAxis.setDrawGridLines(false)
 
@@ -90,15 +85,5 @@ class MonthFormatter : ValueFormatter() {
     override fun getAxisLabel(value: Float, axis: AxisBase?): String {
         val month = YearMonth.of(value.toInt() / 12, (value.toInt() % 12) + 1)
         return month.format(DateTimeFormatter.ofPattern("MMM yy"))
-    }
-}
-
-class CurrencyFormatter : ValueFormatter() {
-    override fun getBarLabel(barEntry: BarEntry?): String {
-        return CurrencyAdapter.amountToString(barEntry?.y?.toLong() ?: 0L)
-    }
-
-    override fun getAxisLabel(value: Float, axis: AxisBase?): String {
-        return CurrencyAdapter.amountToString(value.toLong())
     }
 }

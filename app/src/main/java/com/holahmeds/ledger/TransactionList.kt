@@ -13,7 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.holahmeds.ledger.adapters.CurrencyAdapter
+import com.holahmeds.ledger.adapters.BigDecimalAdapter
 import com.holahmeds.ledger.adapters.DateAdapter
 import com.holahmeds.ledger.entities.Transaction
 import com.squareup.moshi.Moshi
@@ -120,7 +120,11 @@ class TransactionList : Fragment() {
     private fun exportToFile() {
         val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "transactions.json")
 
-        val moshi = Moshi.Builder().add(CurrencyAdapter()).add(DateAdapter()).add(KotlinJsonAdapterFactory()).build()
+        val moshi = Moshi.Builder()
+                .add(BigDecimalAdapter())
+                .add(DateAdapter())
+                .add(KotlinJsonAdapterFactory())
+                .build()
         val type = Types.newParameterizedType(List::class.java, Transaction::class.java)
         val adapter = moshi.adapter<List<Transaction>>(type).indent("  ")
 
