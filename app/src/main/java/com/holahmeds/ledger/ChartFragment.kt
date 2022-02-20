@@ -26,13 +26,15 @@ class ChartFragment : Fragment() {
 
         val viewModel: LedgerViewModel by activityViewModels()
 
-        viewModel.getMonthlyTotals().observe(viewLifecycleOwner, { list ->
+        viewModel.getMonthlyTotals().observe(viewLifecycleOwner) { list ->
             val incomeEntries = mutableListOf<BarEntry>()
             val expenseEntries = mutableListOf<BarEntry>()
 
             for (transaction in list) {
-                incomeEntries.add(BarEntry(transaction.month.let { it.year * 12 + it.monthValue - 1 }.toFloat(), transaction.totalIncome.toFloat()))
-                expenseEntries.add(BarEntry(transaction.month.let { it.year * 12 + it.monthValue - 1 }.toFloat(), transaction.totalExpense.toFloat()))
+                incomeEntries.add(BarEntry(transaction.month.let { it.year * 12 + it.monthValue - 1 }
+                    .toFloat(), transaction.totalIncome.toFloat()))
+                expenseEntries.add(BarEntry(transaction.month.let { it.year * 12 + it.monthValue - 1 }
+                    .toFloat(), transaction.totalExpense.toFloat()))
             }
 
             // Entries need to be sorted by x
@@ -61,7 +63,7 @@ class ChartFragment : Fragment() {
 
                 setVisibleXRangeMaximum(12f)
             }
-        })
+        }
 
         binding.chart.description = null
         binding.chart.isScaleYEnabled = false

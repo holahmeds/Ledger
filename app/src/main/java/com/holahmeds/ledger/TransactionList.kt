@@ -52,10 +52,10 @@ class TransactionList : Fragment() {
         }
 
         val liveTransactions = viewModel.getTransactions()
-        liveTransactions.observe(viewLifecycleOwner, { list ->
+        liveTransactions.observe(viewLifecycleOwner) { list ->
             transactions = list
             transactionAdapter.setData(list)
-        })
+        }
 
         // Set the adapter
         with(binding.transactionList) {

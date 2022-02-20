@@ -41,7 +41,7 @@ class TransactionEditor : Fragment() {
 
         val transactionID = TransactionEditorArgs.fromBundle(requireArguments()).transactionID
         if (transactionID != 0L) {
-            viewModel.getTransaction(transactionID).observe(viewLifecycleOwner, { transaction ->
+            viewModel.getTransaction(transactionID).observe(viewLifecycleOwner) { transaction ->
                 if (transaction != null) {
                     date = transaction.date
                     updateDateView(date)
@@ -59,7 +59,7 @@ class TransactionEditor : Fragment() {
 
                     binding.tagsView.setText(transaction.tags)
                 }
-            })
+            }
         }
 
         binding.dateView.setOnClickListener {
@@ -78,22 +78,35 @@ class TransactionEditor : Fragment() {
         }
 
         context?.let { context ->
-            viewModel.getAllCategories().observe(viewLifecycleOwner, { categories ->
+            viewModel.getAllCategories().observe(viewLifecycleOwner) { categories ->
                 categories?.let {
-                    binding.categoryView.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, categories))
+                    binding.categoryView.setAdapter(
+                        ArrayAdapter(
+                            context,
+                            android.R.layout.simple_dropdown_item_1line,
+                            categories
+                        )
+                    )
                 }
-            })
-            viewModel.getAllTransactees().observe(viewLifecycleOwner, { transactees ->
+            }
+            viewModel.getAllTransactees().observe(viewLifecycleOwner) { transactees ->
                 transactees?.let {
-                    binding.transacteeView.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, transactees))
+                    binding.transacteeView.setAdapter(
+                        ArrayAdapter(
+                            context,
+                            android.R.layout.simple_dropdown_item_1line,
+                            transactees
+                        )
+                    )
                 }
-            })
-            viewModel.getAllTags().observe(viewLifecycleOwner, { tags ->
+            }
+            viewModel.getAllTags().observe(viewLifecycleOwner) { tags ->
                 tags?.let {
-                    val adapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, tags)
+                    val adapter =
+                        ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, tags)
                     binding.tagsView.setAdapter(adapter)
                 }
-            })
+            }
         }
 
         addErrorListeners()
