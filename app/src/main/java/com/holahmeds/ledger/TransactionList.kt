@@ -1,13 +1,10 @@
 package com.holahmeds.ledger
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.view.*
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.NavHostFragment
@@ -89,11 +86,7 @@ class TransactionList : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.export -> {
-                if (ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_EXPORT_FILE)
-                } else {
-                    exportToFile()
-                }
+                exportToFile()
                 return true
             }
             R.id.chart -> {
@@ -106,32 +99,25 @@ class TransactionList : Fragment() {
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        when (requestCode) {
-            REQUEST_EXPORT_FILE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    exportToFile()
-                } else {
-                    Toast.makeText(context, "Cannot export transactions without write permission", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
     }
 
     private fun exportToFile() {
-        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "transactions.json")
+        val file = File(
+            requireContext().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
+            "transactions.json"
+        )
 
         val moshi = Moshi.Builder()
-                .add(BigDecimalAdapter())
-                .add(DateAdapter())
-                .add(KotlinJsonAdapterFactory())
-                .build()
+            .add(BigDecimalAdapter())
+            .add(DateAdapter())
+            .add(KotlinJsonAdapterFactory())
+            .build()
         val type = Types.newParameterizedType(List::class.java, Transaction::class.java)
         val adapter = moshi.adapter<List<Transaction>>(type).indent("  ")
 
         file.writeText(adapter.toJson(transactions))
-    }
 
-    companion object {
-        const val REQUEST_EXPORT_FILE = 0
+        Toast.makeText(context, "Exported to $file", Toast.LENGTH_LONG).show()
+        Log.i("TransactionList", "Exported data to $file")
     }
 }
