@@ -19,8 +19,8 @@ interface TransactionDao {
     fun getAllTransactees(): LiveData<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun add(transaction: Transaction): Long
+    suspend fun add(transaction: Transaction): Long
 
     @Delete
-    fun delete(transactions: List<Transaction>)
+    suspend fun delete(transaction: Transaction)
 }

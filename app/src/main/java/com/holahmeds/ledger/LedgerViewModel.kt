@@ -1,17 +1,16 @@
 package com.holahmeds.ledger
 
 import android.app.Application
-import android.os.AsyncTask
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.*
 import com.holahmeds.ledger.entities.Tag
 import com.holahmeds.ledger.entities.Transaction
 import com.holahmeds.ledger.entities.TransactionTag
 import com.holahmeds.ledger.entities.TransactionTotals
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.YearMonth
-import java.util.stream.Collectors
 
 class LedgerViewModel(application: Application) : AndroidViewModel(application) {
     private val database: LedgerDatabase = LedgerDatabase.getInstance(application)
@@ -28,13 +27,14 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         val transactionDao = database.transactionDao()
         val tagDao = database.tagDao()
 
-        transactionsWithTags = Transformations.map(transactionDao.getAll()) { transactions ->
-            val tags = GetTransactionTags(database).execute(*transactions.toTypedArray()).get()
-
-            for ((i, t) in transactions.withIndex()) {
-                t.tags = tags[i]
+        transactionsWithTags = transactionDao.getAll().switchMap { transactions ->
+            liveData(context = viewModelScope.coroutineContext + Dispatchers.IO) {
+                for (transaction in transactions) {
+                    transaction.tags =
+                        database.transactionTagDao().getTagsForTransaction(transaction.id)
+                }
+                emit(transactions)
             }
-            transactions
         }
 
         tags = tagDao.getAll()
@@ -44,7 +44,7 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
 
         monthlyTotal = Transformations.map(transactionDao.getAll()) { transactions ->
             val aggregates: Map<YearMonth, TransactionTotals> = transactions
-                    .groupingBy { transaction -> YearMonth.from(transaction.date) }
+                .groupingBy { transaction -> YearMonth.from(transaction.date) }
                     .aggregate { key, accumulator, element, _ ->
                         val ac = accumulator
                                 ?: TransactionTotals(key, BigDecimal.ZERO, BigDecimal.ZERO)
@@ -60,11 +60,12 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun getTransaction(transactionId: Long): LiveData<Transaction> {
-        val transaction = database.transactionDao().get(transactionId)
-        return Transformations.map(transaction) {
-            val tags = GetTransactionTags(database).execute(it).get()
-            it.tags = tags[0]
-            it
+        return database.transactionDao().get(transactionId).switchMap { transaction ->
+            liveData(context = viewModelScope.coroutineContext + Dispatchers.IO) {
+                transaction.tags =
+                    database.transactionTagDao().getTagsForTransaction(transaction.id)
+                emit(transaction)
+            }
         }
     }
 
@@ -75,11 +76,46 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
     fun getMonthlyTotals() = monthlyTotal
 
     fun updateTransaction(transaction: Transaction) {
-        UpdateTransaction(database, transaction).execute()
+        viewModelScope.launch {
+            val transactionDao = database.transactionDao()
+            val tagDao = database.tagDao()
+            val transactionTagDao = database.transactionTagDao()
+
+            val transactionId = transactionDao.add(transaction)
+
+            val oldTags = transactionTagDao.getTagsForTransaction(transaction.id)
+
+            val removedTags = async {
+                val list = mutableListOf<Long>()
+                for (tag in oldTags) {
+                    if (!transaction.tags.contains(tag)) {
+                        val id = tagDao.getTagId(tag)
+                        if (id != null) {
+                            list.add(id)
+                        }
+                    }
+                }
+                list
+            }
+            transactionTagDao.delete(transaction.id, removedTags.await())
+
+            for (t in transaction.tags) {
+                if (!oldTags.contains(t)) {
+                    var tagId = tagDao.getTagId(t)
+                    if (tagId == null) {
+                        tagId = tagDao.add(Tag(0, t))
+                    }
+                    transactionTagDao.add(TransactionTag(transactionId, tagId))
+                }
+            }
+        }
     }
 
     fun deleteTransaction(transaction: Transaction) {
-        DeleteTransaction(database).execute(transaction)
+        viewModelScope.launch {
+            database.transactionTagDao().delete(transaction.id)
+            database.transactionDao().delete(transaction)
+        }
     }
 
     fun getAllTags(): LiveData<List<String>> {
@@ -92,62 +128,5 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
 
     fun getAllTransactees(): LiveData<List<String>> {
         return transactees
-    }
-
-
-    companion object {
-        class GetTransactionTags(private val database: LedgerDatabase) : AsyncTask<Transaction, Void, List<List<String>>>() {
-            override fun doInBackground(vararg transactions: Transaction?): List<List<String>>? {
-                val transactionTagDao = database.transactionTagDao()
-
-                return transactions.map { transaction ->
-                    if (transaction != null) {
-                        transactionTagDao.getTagsForTransactionSync(transaction.id)
-                    } else {
-                        emptyList()
-                    }
-                }
-            }
-        }
-
-        class UpdateTransaction(private val database: LedgerDatabase, private val transaction: Transaction) : AsyncTask<Void, Void, Unit>() {
-            override fun doInBackground(vararg params: Void?) {
-                val transactionDao = database.transactionDao()
-                val tagDao = database.tagDao()
-                val transactionTagDao = database.transactionTagDao()
-
-                val transactionId = transactionDao.add(transaction)
-
-                val oldTags = transactionTagDao.getTagsForTransactionSync(transaction.id)
-
-                val removedTags = oldTags.stream()
-                        .filter { t -> !transaction.tags.contains(t) }
-                        .map { t -> tagDao.getTagId(t) }
-                        .collect(Collectors.toList())
-                transactionTagDao.delete(transaction.id, removedTags)
-
-                for (t in transaction.tags) {
-                    if (!oldTags.contains(t)) {
-                        var tagId = tagDao.getTagId(t)
-                        if (tagId == 0L) {
-                            tagId = tagDao.add(Tag(0, t))
-                        }
-                        transactionTagDao.add(TransactionTag(transactionId, tagId))
-                    }
-                }
-            }
-        }
-
-        class DeleteTransaction(private val database: LedgerDatabase) : AsyncTask<Transaction, Unit, Unit>() {
-            override fun doInBackground(vararg transactions: Transaction) {
-                val transactionList = transactions.asList()
-                val transactionIds = transactionList.stream()
-                        .map { t -> t.id }
-                        .collect(Collectors.toList())
-
-                database.transactionTagDao().delete(transactionIds)
-                database.transactionDao().delete(transactionList)
-            }
-        }
     }
 }

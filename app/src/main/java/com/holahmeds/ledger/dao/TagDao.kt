@@ -13,8 +13,8 @@ interface TagDao {
     fun getAll(): LiveData<List<String>>
 
     @Query("SELECT id FROM tag WHERE text=:tagText")
-    fun getTagId(tagText: String): Long
+    suspend fun getTagId(tagText: String): Long?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun add(tag: Tag): Long
+    suspend fun add(tag: Tag): Long
 }
