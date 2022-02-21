@@ -20,6 +20,7 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.io.File
 
 class TransactionList : Fragment() {
+    private val viewModel: LedgerViewModel by activityViewModels()
     private var transactions: List<Transaction> = emptyList()
 
     override fun onCreateView(inflater: LayoutInflater,
@@ -28,8 +29,6 @@ class TransactionList : Fragment() {
         setHasOptionsMenu(true)
 
         val binding = FragmentTransactionListBinding.inflate(inflater, container, false)
-
-        val viewModel: LedgerViewModel by activityViewModels()
 
         val transactionAdapter = TransactionAdapter { transaction: Transaction ->
             val dialog = TransactionListMenu(object : TransactionListMenu.ItemSelectedListener {

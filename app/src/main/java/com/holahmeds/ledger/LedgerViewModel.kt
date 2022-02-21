@@ -1,20 +1,20 @@
 package com.holahmeds.ledger
 
-import android.app.Application
 import androidx.lifecycle.*
 import com.holahmeds.ledger.entities.Tag
 import com.holahmeds.ledger.entities.Transaction
 import com.holahmeds.ledger.entities.TransactionTag
 import com.holahmeds.ledger.entities.TransactionTotals
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.YearMonth
+import javax.inject.Inject
 
-class LedgerViewModel(application: Application) : AndroidViewModel(application) {
-    private val database: LedgerDatabase = LedgerDatabase.getInstance(application)
-
+@HiltViewModel
+class LedgerViewModel @Inject constructor(private val database: LedgerDatabase) : ViewModel() {
     private val transactionsWithTags: LiveData<List<Transaction>>
     private val tags: LiveData<List<String>>
 

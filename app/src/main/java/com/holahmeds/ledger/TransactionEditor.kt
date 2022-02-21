@@ -21,11 +21,15 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 class TransactionEditor : Fragment() {
+    private val viewModel: LedgerViewModel by activityViewModels()
+
     private var _binding: FragmentTransactionEditorBinding? = null
     private val binding get() = _binding!!
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         // Inflate the layout for this fragment
         _binding = FragmentTransactionEditorBinding.inflate(inflater, container, false)
         return binding.root
@@ -33,8 +37,6 @@ class TransactionEditor : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val viewModel: LedgerViewModel by activityViewModels()
 
         var date: LocalDate = LocalDate.now()
         updateDateView(date)

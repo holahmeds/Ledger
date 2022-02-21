@@ -18,13 +18,15 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 class ChartFragment : Fragment() {
-    override fun onCreateView(inflater: LayoutInflater,
-                              container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
+    private val viewModel: LedgerViewModel by activityViewModels()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         // Inflate the layout for this fragment
         val binding = FragmentChartBinding.inflate(inflater, container, false)
-
-        val viewModel: LedgerViewModel by activityViewModels()
 
         viewModel.getMonthlyTotals().observe(viewLifecycleOwner) { list ->
             val incomeEntries = mutableListOf<BarEntry>()
