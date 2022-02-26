@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.holahmeds.ledger.adapters.BigDecimalAdapter
 import com.holahmeds.ledger.adapters.DateAdapter
-import com.holahmeds.ledger.database.entities.Transaction
+import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionListBinding
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types

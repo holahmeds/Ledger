@@ -1,8 +1,8 @@
 package com.holahmeds.ledger
 
 import androidx.lifecycle.LiveData
-import com.holahmeds.ledger.database.entities.Transaction
-import com.holahmeds.ledger.database.entities.TransactionTotals
+import com.holahmeds.ledger.data.Transaction
+import com.holahmeds.ledger.data.TransactionTotals
 
 interface TransactionRepository {
     fun getTransaction(transactionId: Long): LiveData<Transaction>

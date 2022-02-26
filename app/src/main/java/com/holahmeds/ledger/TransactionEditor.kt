@@ -14,7 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.NavHostFragment
 import com.holahmeds.ledger.adapters.DateAdapter
-import com.holahmeds.ledger.database.entities.Transaction
+import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionEditorBinding
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler
 import java.math.BigDecimal

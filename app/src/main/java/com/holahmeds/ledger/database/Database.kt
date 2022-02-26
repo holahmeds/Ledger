@@ -13,10 +13,10 @@ import com.holahmeds.ledger.database.dao.TagDao
 import com.holahmeds.ledger.database.dao.TransactionDao
 import com.holahmeds.ledger.database.dao.TransactionTagDao
 import com.holahmeds.ledger.database.entities.Tag
-import com.holahmeds.ledger.database.entities.Transaction
+import com.holahmeds.ledger.database.entities.TransactionEntity
 import com.holahmeds.ledger.database.entities.TransactionTag
 
-@Database(entities = [Transaction::class, Tag::class, TransactionTag::class], version = 4)
+@Database(entities = [TransactionEntity::class, Tag::class, TransactionTag::class], version = 4)
 @TypeConverters(DateAdapter::class, BigDecimalConverter::class)
 abstract class LedgerDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao

@@ -3,7 +3,7 @@ package com.holahmeds.ledger
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.holahmeds.ledger.database.entities.Transaction
+import com.holahmeds.ledger.data.Transaction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
