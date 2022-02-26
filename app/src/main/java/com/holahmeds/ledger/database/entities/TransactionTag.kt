@@ -1,4 +1,4 @@
-package com.holahmeds.ledger.entities
+package com.holahmeds.ledger.database.entities
 
 import androidx.room.Entity
 import androidx.room.ForeignKey

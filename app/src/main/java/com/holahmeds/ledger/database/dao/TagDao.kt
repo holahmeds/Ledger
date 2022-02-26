@@ -1,11 +1,11 @@
-package com.holahmeds.ledger.dao
+package com.holahmeds.ledger.database.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.holahmeds.ledger.entities.Tag
+import com.holahmeds.ledger.database.entities.Tag
 
 @Dao
 interface TagDao {

@@ -1,8 +1,8 @@
-package com.holahmeds.ledger.dao
+package com.holahmeds.ledger.database.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.holahmeds.ledger.entities.Transaction
+import com.holahmeds.ledger.database.entities.Transaction
 
 @Dao
 interface TransactionDao {

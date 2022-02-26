@@ -8,10 +8,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.ChipDrawable
 import com.google.android.material.chip.ChipGroup
+import com.holahmeds.ledger.database.entities.Transaction
 import com.holahmeds.ledger.databinding.BalanceCardBinding
 import com.holahmeds.ledger.databinding.TransactionCardBinding
 import com.holahmeds.ledger.databinding.TransactionListSubheaderBinding
-import com.holahmeds.ledger.entities.Transaction
 import java.math.BigDecimal
 import java.text.NumberFormat
 import java.time.LocalDate

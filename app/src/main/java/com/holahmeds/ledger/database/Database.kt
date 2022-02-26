@@ -1,4 +1,4 @@
-package com.holahmeds.ledger
+package com.holahmeds.ledger.database
 
 import android.content.Context
 import androidx.room.Database
@@ -9,12 +9,12 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.holahmeds.ledger.adapters.BigDecimalConverter
 import com.holahmeds.ledger.adapters.DateAdapter
-import com.holahmeds.ledger.dao.TagDao
-import com.holahmeds.ledger.dao.TransactionDao
-import com.holahmeds.ledger.dao.TransactionTagDao
-import com.holahmeds.ledger.entities.Tag
-import com.holahmeds.ledger.entities.Transaction
-import com.holahmeds.ledger.entities.TransactionTag
+import com.holahmeds.ledger.database.dao.TagDao
+import com.holahmeds.ledger.database.dao.TransactionDao
+import com.holahmeds.ledger.database.dao.TransactionTagDao
+import com.holahmeds.ledger.database.entities.Tag
+import com.holahmeds.ledger.database.entities.Transaction
+import com.holahmeds.ledger.database.entities.TransactionTag
 
 @Database(entities = [Transaction::class, Tag::class, TransactionTag::class], version = 4)
 @TypeConverters(DateAdapter::class, BigDecimalConverter::class)
