@@ -13,11 +13,13 @@ import com.holahmeds.ledger.databinding.TransactionCardBinding
 import com.holahmeds.ledger.databinding.TransactionListSubheaderBinding
 import com.holahmeds.ledger.entities.Transaction
 import java.math.BigDecimal
+import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
     : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    private val numberFormatter: NumberFormat = NumberFormat.getInstance()
 
     private var transactions: List<Transaction> = emptyList()
     private var dates: MutableList<LocalDate> = mutableListOf()
@@ -26,15 +28,21 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
 
     private var balance: BigDecimal = BigDecimal.ZERO
 
+    init {
+        numberFormatter.minimumFractionDigits = 2
+    }
+
     class BalanceViewHolder(binding: BalanceCardBinding) : RecyclerView.ViewHolder(binding.root) {
         var balance: TextView = binding.balanceView
     }
 
-    class SubheaderViewHolder(binding: TransactionListSubheaderBinding) : RecyclerView.ViewHolder(binding.root) {
+    class SubheaderViewHolder(binding: TransactionListSubheaderBinding) :
+        RecyclerView.ViewHolder(binding.root) {
         val date: TextView = binding.dateView
     }
 
-    class TransactionViewHolder(binding: TransactionCardBinding) : RecyclerView.ViewHolder(binding.root) {
+    class TransactionViewHolder(binding: TransactionCardBinding) :
+        RecyclerView.ViewHolder(binding.root) {
         val transactionView: View = binding.root
         val amount: TextView = binding.amount
         val category: TextView = binding.category
@@ -103,13 +111,13 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
         when (holder.itemViewType) {
             BALANCE_CARD -> {
                 val balanceHolder = holder as BalanceViewHolder
-                balanceHolder.balance.text = balance.toPlainString()
+                balanceHolder.balance.text = numberFormatter.format(balance)
             }
             TRANSACTION_CARD -> {
                 val transactionHolder = holder as TransactionViewHolder
                 val transaction = transactions[itemMap[position - 1].second]
 
-                transactionHolder.amount.text = transaction.amount.toPlainString()
+                transactionHolder.amount.text = numberFormatter.format(transaction.amount)
 
                 transactionHolder.category.text = transaction.category
 
