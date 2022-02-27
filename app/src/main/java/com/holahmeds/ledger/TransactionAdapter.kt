@@ -52,9 +52,13 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
     }
 
     fun setData(newData: List<Transaction>) {
-        balance = newData.asSequence()
+        balance = if (newData.isEmpty()) {
+            BigDecimal.ZERO
+        } else {
+            newData.asSequence()
                 .map { transaction -> transaction.amount }
                 .reduce { acc, amount -> acc + amount }
+        }
 
         transactions = newData
         dates.clear()

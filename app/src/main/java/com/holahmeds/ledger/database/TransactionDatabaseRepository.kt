@@ -1,9 +1,6 @@
 package com.holahmeds.ledger.database
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.liveData
-import androidx.lifecycle.switchMap
+import androidx.lifecycle.*
 import com.holahmeds.ledger.TransactionRepository
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
@@ -19,7 +16,9 @@ import javax.inject.Inject
 
 class TransactionDatabaseRepository @Inject constructor(private val database: LedgerDatabase) :
     TransactionRepository {
-    private val transactionsWithTags: LiveData<List<Transaction>>
+    private val transactions: MediatorLiveData<List<Transaction>> = MediatorLiveData()
+    private var transactionEntities: List<TransactionEntity> = emptyList()
+    private var transactionTags: Map<Long, List<String>> = emptyMap()
 
     private val tags: LiveData<List<String>>
     private val categories: LiveData<List<String>>
@@ -30,17 +29,15 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
     init {
         val transactionDao = database.transactionDao()
         val tagDao = database.tagDao()
+        val transactionTagDao = database.transactionTagDao()
 
-        transactionsWithTags = transactionDao.getAll().switchMap { transactionEntities ->
-            liveData(Dispatchers.IO) {
-                val transactions = arrayListOf<Transaction>()
-                for (transactionEntity in transactionEntities) {
-                    val tags =
-                        database.transactionTagDao().getTagsForTransaction(transactionEntity.id)
-                    transactions.add(transactionEntity.makeTransaction(tags))
-                }
-                emit(transactions)
-            }
+        transactions.addSource(transactionDao.getAll()) {
+            transactionEntities = it
+            buildTransactions()
+        }
+        transactions.addSource(transactionTagDao.getAll()) {
+            transactionTags = it
+            buildTransactions()
         }
 
         tags = tagDao.getAll()
@@ -74,9 +71,7 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
         }
     }
 
-    override fun getTransactions(): LiveData<List<Transaction>> {
-        return transactionsWithTags
-    }
+    override fun getTransactions(): LiveData<List<Transaction>> = transactions
 
     override suspend fun updateTransaction(transaction: Transaction) = coroutineScope {
         val transactionDao = database.transactionDao()
@@ -130,4 +125,17 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
     }
 
     override fun getMonthlyTotals() = monthlyTotal
+
+    @Synchronized
+    private fun buildTransactions() {
+        val transactions = transactionEntities.map { transactionEntity ->
+            transactionEntity.makeTransaction(
+                transactionTags.getOrDefault(
+                    transactionEntity.id,
+                    emptyList()
+                )
+            )
+        }
+        this.transactions.value = transactions
+    }
 }
