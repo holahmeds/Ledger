@@ -5,7 +5,7 @@ import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 
 interface TransactionRepository {
-    fun getTransaction(transactionId: Long): LiveData<Transaction>
+    suspend fun getTransaction(transactionId: Long): Transaction
 
     fun getTransactions(): LiveData<List<Transaction>>
 

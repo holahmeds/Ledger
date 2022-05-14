@@ -13,7 +13,7 @@ class LedgerViewModel @Inject constructor(
     private val transactionRepo: TransactionRepository
 ) : ViewModel() {
 
-    fun getTransaction(transactionId: Long): LiveData<Transaction> =
+    suspend fun getTransaction(transactionId: Long): Transaction =
         transactionRepo.getTransaction(transactionId)
 
     fun getTransactions(): LiveData<List<Transaction>> = transactionRepo.getTransactions()

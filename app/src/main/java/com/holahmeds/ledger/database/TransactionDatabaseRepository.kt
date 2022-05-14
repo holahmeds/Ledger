@@ -1,13 +1,14 @@
 package com.holahmeds.ledger.database
 
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.Transformations
 import com.holahmeds.ledger.TransactionRepository
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 import com.holahmeds.ledger.database.entities.Tag
 import com.holahmeds.ledger.database.entities.TransactionEntity
 import com.holahmeds.ledger.database.entities.TransactionTag
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import java.math.BigDecimal
@@ -61,14 +62,10 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
         }
     }
 
-    override fun getTransaction(transactionId: Long): LiveData<Transaction> {
-        return database.transactionDao().get(transactionId).switchMap { transactionEntity ->
-            liveData(Dispatchers.IO) {
-                val tags = database.transactionTagDao().getTagsForTransaction(transactionEntity.id)
-                val transaction = transactionEntity.makeTransaction(tags)
-                emit(transaction)
-            }
-        }
+    override suspend fun getTransaction(transactionId: Long): Transaction {
+        val transactionEntity = database.transactionDao().get(transactionId)
+        val tags = database.transactionTagDao().getTagsForTransaction(transactionId)
+        return transactionEntity.makeTransaction(tags)
     }
 
     override fun getTransactions(): LiveData<List<Transaction>> = transactions

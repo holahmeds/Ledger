@@ -12,11 +12,13 @@ import android.widget.DatePicker
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import com.holahmeds.ledger.adapters.DateAdapter
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionEditorBinding
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -43,24 +45,23 @@ class TransactionEditor : Fragment() {
 
         val transactionID = TransactionEditorArgs.fromBundle(requireArguments()).transactionID
         if (transactionID != 0L) {
-            viewModel.getTransaction(transactionID).observe(viewLifecycleOwner) { transaction ->
-                if (transaction != null) {
-                    date = transaction.date
-                    updateDateView(date)
+            viewLifecycleOwner.lifecycleScope.launch {
+                val transaction = viewModel.getTransaction(transactionID)
+                date = transaction.date
+                updateDateView(date)
 
-                    if (transaction.amount > BigDecimal.ZERO) {
-                        binding.chipIncome.isChecked = true
-                        binding.amountView.setText(transaction.amount.toPlainString())
-                    } else {
-                        binding.amountView.setText(transaction.amount.negate().toPlainString())
-                    }
-
-                    binding.categoryView.setText(transaction.category)
-                    binding.transacteeView.setText(transaction.transactee)
-                    binding.noteView.setText(transaction.note)
-
-                    binding.tagsView.setText(transaction.tags)
+                if (transaction.amount > BigDecimal.ZERO) {
+                    binding.chipIncome.isChecked = true
+                    binding.amountView.setText(transaction.amount.toPlainString())
+                } else {
+                    binding.amountView.setText(transaction.amount.negate().toPlainString())
                 }
+
+                binding.categoryView.setText(transaction.category)
+                binding.transacteeView.setText(transaction.transactee)
+                binding.noteView.setText(transaction.note)
+
+                binding.tagsView.setText(transaction.tags)
             }
         }
 

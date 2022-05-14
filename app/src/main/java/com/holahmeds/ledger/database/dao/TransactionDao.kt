@@ -7,7 +7,7 @@ import com.holahmeds.ledger.database.entities.TransactionEntity
 @Dao
 interface TransactionDao {
     @Query("SELECT * FROM transaction_table WHERE id=:transactionId")
-    fun get(transactionId: Long): LiveData<TransactionEntity>
+    suspend fun get(transactionId: Long): TransactionEntity
 
     @Query("SELECT * FROM transaction_table ORDER BY date DESC, id DESC")
     fun getAll(): LiveData<List<TransactionEntity>>
