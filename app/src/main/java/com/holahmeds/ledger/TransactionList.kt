@@ -97,9 +97,6 @@ class TransactionList : Fragment() {
         return false
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-    }
-
     private fun exportToFile() {
         val file = File(
             requireContext().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
