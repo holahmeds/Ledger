@@ -5,7 +5,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @JsonClass(generateAdapter = true)
-class Transaction(
+data class Transaction(
     val id: Long,
     val date: LocalDate,
     val amount: BigDecimal,

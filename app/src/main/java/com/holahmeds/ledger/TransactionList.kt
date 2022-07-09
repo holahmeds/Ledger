@@ -10,13 +10,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.holahmeds.ledger.adapters.BigDecimalAdapter
-import com.holahmeds.ledger.adapters.DateAdapter
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionListBinding
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.io.File
 
 class TransactionList : Fragment() {
@@ -103,15 +98,9 @@ class TransactionList : Fragment() {
             "transactions.json"
         )
 
-        val moshi = Moshi.Builder()
-            .add(BigDecimalAdapter())
-            .add(DateAdapter())
-            .add(KotlinJsonAdapterFactory())
-            .build()
-        val type = Types.newParameterizedType(List::class.java, Transaction::class.java)
-        val adapter = moshi.adapter<List<Transaction>>(type).indent("  ")
+        val transactionSerializer = TransactionSerializer()
 
-        file.writeText(adapter.toJson(transactions))
+        file.writeText(transactionSerializer.serializeList(transactions, true))
 
         Toast.makeText(context, "Exported to $file", Toast.LENGTH_LONG).show()
         Log.i("TransactionList", "Exported data to $file")
