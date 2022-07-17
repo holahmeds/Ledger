@@ -5,6 +5,8 @@ import android.os.Environment
 import android.util.Log
 import android.view.*
 import android.widget.Toast
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.NavHostFragment
@@ -18,10 +20,38 @@ class TransactionList : Fragment() {
     private val viewModel: LedgerViewModel by activityViewModels()
     private var transactions: List<Transaction> = emptyList()
 
-    override fun onCreateView(inflater: LayoutInflater,
-                              container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
-        setHasOptionsMenu(true)
+    private val menuProvider = object : MenuProvider {
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+            menuInflater.inflate(R.menu.transaction_list_menu, menu)
+        }
+
+        override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+            when (menuItem.itemId) {
+                R.id.export -> {
+                    exportToFile()
+                    return true
+                }
+                R.id.chart -> {
+                    val navController = NavHostFragment.findNavController(this@TransactionList)
+                    navController.navigate(R.id.chartFragment)
+                }
+                R.id.preferences -> {
+                    val navController = NavHostFragment.findNavController(this@TransactionList)
+                    navController.navigate(R.id.preferencesFragment)
+                }
+            }
+
+            return false
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(menuProvider, viewLifecycleOwner)
 
         val binding = FragmentTransactionListBinding.inflate(inflater, container, false)
 
@@ -70,30 +100,6 @@ class TransactionList : Fragment() {
         }
 
         return binding.root
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.transaction_list_menu, menu)
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.export -> {
-                exportToFile()
-                return true
-            }
-            R.id.chart -> {
-                val navController = NavHostFragment.findNavController(this)
-                navController.navigate(R.id.chartFragment)
-            }
-            R.id.preferences -> {
-                val navController = NavHostFragment.findNavController(this)
-                navController.navigate(R.id.preferencesFragment)
-            }
-        }
-
-        return false
     }
 
     private fun exportToFile() {
