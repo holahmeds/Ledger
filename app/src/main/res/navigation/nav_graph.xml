@@ -12,14 +12,18 @@
         <action
             android:id="@+id/action_edit_from_list"
             app:destination="@id/transactionEditor"
-            app:popUpTo="@+id/transactionList" >
-            <argument android:defaultValue="Edit transaction"
+            app:popUpTo="@+id/transactionList">
+            <argument
+                android:defaultValue="Edit transaction"
                 android:name="title" />
         </action>
         <action
             android:id="@+id/action_show_chart"
             app:destination="@id/chartFragment"
             app:popUpTo="@+id/transactionList" />
+        <action
+            android:id="@+id/action_show_preferencesFragment"
+            app:destination="@id/preferencesFragment" />
     </fragment>
     <fragment
         android:id="@+id/transactionEditor"
@@ -39,4 +43,8 @@
         android:name="com.holahmeds.ledger.ChartFragment"
         android:label="@string/statistics"
         tools:layout="@layout/fragment_chart" />
+    <fragment
+        android:id="@+id/preferencesFragment"
+        android:name="com.holahmeds.ledger.PreferencesFragment"
+        android:label="Preferences" />
 </navigation>

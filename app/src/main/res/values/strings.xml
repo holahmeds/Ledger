@@ -15,4 +15,5 @@
     <string name="balance">Balance</string>
     <string name="add_new_transaction">Add new transaction</string>
     <string name="statistics">Statistics</string>
+    <string name="preferences">Preferences</string>
 </resources>

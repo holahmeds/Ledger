@@ -1,9 +1,10 @@
 package com.holahmeds.ledger
 
 import android.content.Context
+import android.widget.Toast
+import androidx.preference.PreferenceManager
 import com.holahmeds.ledger.database.LedgerDatabase
-import com.holahmeds.ledger.database.TransactionDatabaseRepository
-import dagger.Binds
+import com.holahmeds.ledger.server.TransactionServerRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,15 +15,22 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 @Module
 abstract class LedgerModule {
-    @Binds
-    @Singleton
-    abstract fun bindTransactionRepo(transactionDatabaseRepository: TransactionDatabaseRepository): TransactionRepository
-
     companion object {
         @Provides
         @Singleton
         fun provideLedgerDatabase(@ApplicationContext appContext: Context): LedgerDatabase {
             return LedgerDatabase.getInstance(appContext)
+        }
+
+        @Provides
+        fun provideServerRepo(@ApplicationContext appContext: Context): TransactionServerRepository? {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(appContext)
+            val serverURL = sharedPreferences.getString("serverURL", null)
+            if (serverURL == null) {
+                Toast.makeText(appContext, "Server URL not set", Toast.LENGTH_LONG).show()
+                return null
+            }
+            return TransactionServerRepository(serverURL)
         }
     }
 }

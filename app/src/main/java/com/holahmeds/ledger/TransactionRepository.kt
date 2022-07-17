@@ -29,4 +29,7 @@ interface TransactionRepository {
     fun getMonthlyTotals(): LiveData<List<TransactionTotals>>
 }
 
-class FetchTransactionException(t: Throwable) : Exception(t)
+class FetchTransactionException : Exception {
+    constructor(t: Throwable) : super(t)
+    constructor(message: String) : super(message)
+}

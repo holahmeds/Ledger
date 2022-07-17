@@ -27,7 +27,8 @@ import java.net.ConnectException
 import java.time.YearMonth
 import javax.inject.Inject
 
-class TransactionServerRepository @Inject constructor() : TransactionRepository, AutoCloseable {
+class TransactionServerRepository @Inject constructor(private val server: String) :
+    TransactionRepository, AutoCloseable {
     companion object {
         const val TRANSACTION_SERVER_REPOSITORY = "TransactionServerRepository"
     }
@@ -70,8 +71,6 @@ class TransactionServerRepository @Inject constructor() : TransactionRepository,
     private val tags: MutableLiveData<List<String>> = MutableLiveData()
     private val categories: MutableLiveData<List<String>> = MutableLiveData()
     private val transactees: MutableLiveData<List<String>> = MutableLiveData()
-
-    private val server = "http://192.168.1.11:8000"
 
     override suspend fun getTransaction(transactionId: Long): Transaction {
         try {

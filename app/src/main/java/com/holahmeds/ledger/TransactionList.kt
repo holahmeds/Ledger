@@ -87,6 +87,10 @@ class TransactionList : Fragment() {
                 val navController = NavHostFragment.findNavController(this)
                 navController.navigate(R.id.chartFragment)
             }
+            R.id.preferences -> {
+                val navController = NavHostFragment.findNavController(this)
+                navController.navigate(R.id.preferencesFragment)
+            }
         }
 
         return false
