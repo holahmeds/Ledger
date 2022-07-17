@@ -13,6 +13,7 @@ class LedgerViewModel @Inject constructor(
     private val transactionRepo: TransactionRepository
 ) : ViewModel() {
 
+    @Throws(FetchTransactionException::class)
     suspend fun getTransaction(transactionId: Long): Transaction =
         transactionRepo.getTransaction(transactionId)
 

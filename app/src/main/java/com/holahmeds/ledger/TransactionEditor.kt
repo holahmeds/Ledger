@@ -46,7 +46,12 @@ class TransactionEditor : Fragment() {
         val transactionID = TransactionEditorArgs.fromBundle(requireArguments()).transactionID
         if (transactionID != 0L) {
             viewLifecycleOwner.lifecycleScope.launch {
-                val transaction = viewModel.getTransaction(transactionID)
+                val transaction = try {
+                    viewModel.getTransaction(transactionID)
+                } catch (e: FetchTransactionException) {
+                    Toast.makeText(context, "Unable to fetch transaction", Toast.LENGTH_LONG).show()
+                    return@launch
+                }
                 date = transaction.date
                 updateDateView(date)
 

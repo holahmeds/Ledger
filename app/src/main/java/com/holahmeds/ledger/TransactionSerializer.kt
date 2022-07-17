@@ -1,50 +1,42 @@
 package com.holahmeds.ledger
 
-import com.holahmeds.ledger.adapters.BigDecimalAdapter
-import com.holahmeds.ledger.adapters.DateAdapter
+import com.fasterxml.jackson.core.util.DefaultIndenter
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.holahmeds.ledger.data.Transaction
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
-import com.squareup.moshi.adapter
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 
 class TransactionSerializer {
-    private val moshi: Moshi = Moshi.Builder()
-        .add(BigDecimalAdapter())
-        .add(DateAdapter())
-        .add(KotlinJsonAdapterFactory())
-        .build()
+    private val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 
-    @OptIn(ExperimentalStdlibApi::class)
+    private val prettyPrinter = DefaultPrettyPrinter()
+        .withObjectIndenter(DefaultIndenter("  ", "\n"))
+        .withArrayIndenter(DefaultIndenter("  ", "\n"))
+    private val prettyMapper: ObjectMapper = jacksonObjectMapper()
+        .registerModule(JavaTimeModule())
+        .enable(SerializationFeature.INDENT_OUTPUT)
+        .setDefaultPrettyPrinter(prettyPrinter)
+
     fun serialize(transaction: Transaction): String {
-        val adapter = moshi.adapter<Transaction>()
-        return adapter.toJson(transaction)
+        return objectMapper.writeValueAsString(transaction)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     fun deserialize(transactionJson: String): Transaction {
-        val adapter = moshi.adapter<Transaction>()
-
-        return adapter.fromJson(transactionJson)
-            ?: throw SerializeException("Serialization returned null")
+        return objectMapper.readValue(transactionJson)
     }
 
     fun serializeList(transactions: List<Transaction>, pretty: Boolean = false): String {
-        val type = Types.newParameterizedType(List::class.java, Transaction::class.java)
-        var adapter = moshi.adapter<List<Transaction>>(type)
-        if (pretty) {
-            adapter = adapter.indent("  ")
+        return if (pretty) {
+            prettyMapper.writeValueAsString(transactions)
+        } else {
+            objectMapper.writeValueAsString(transactions)
         }
-        return adapter.toJson(transactions)
     }
 
     fun deserializeList(transactionsJson: String): List<Transaction> {
-        val type = Types.newParameterizedType(List::class.java, Transaction::class.java)
-        val adapter = moshi.adapter<List<Transaction>>(type)
-
-        return adapter.fromJson(transactionsJson)
-            ?: throw SerializeException("Serialization returned null")
+        return objectMapper.readValue(transactionsJson)
     }
-
-    class SerializeException(message: String) : Exception(message)
 }
