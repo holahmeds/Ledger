@@ -18,16 +18,22 @@ import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.HttpMethod.Companion.Delete
+import io.ktor.http.HttpMethod.Companion.Get
+import io.ktor.http.HttpMethod.Companion.Post
+import io.ktor.http.HttpMethod.Companion.Put
 import io.ktor.serialization.jackson.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import java.math.BigDecimal
 import java.net.ConnectException
+import java.net.URL
 import java.time.YearMonth
 import javax.inject.Inject
 
-class TransactionServerRepository @Inject constructor(private val server: String) :
+class TransactionServerRepository @Inject constructor(private val serverURL: URL) :
     TransactionRepository, AutoCloseable {
     companion object {
         const val TRANSACTION_SERVER_REPOSITORY = "TransactionServerRepository"
@@ -74,7 +80,7 @@ class TransactionServerRepository @Inject constructor(private val server: String
 
     override suspend fun getTransaction(transactionId: Long): Transaction {
         try {
-            return client.get("$server/transactions/$transactionId").body()
+            return request(Get, "transactions/$transactionId").body()
         } catch (e: ConnectException) {
             throw FetchTransactionException(e)
         } catch (e: ResponseException) {
@@ -98,15 +104,9 @@ class TransactionServerRepository @Inject constructor(private val server: String
     override suspend fun updateTransaction(transaction: Transaction) {
         try {
             if (transaction.id == 0L) {
-                client.post("$server/transactions") {
-                    contentType(ContentType.Application.Json)
-                    setBody(transaction)
-                }
+                request(Post, "transactions", transaction)
             } else {
-                client.put("$server/transactions/${transaction.id}") {
-                    contentType(ContentType.Application.Json)
-                    setBody(transaction)
-                }
+                request(Put, "transactions/${transaction.id}", transaction)
             }
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to update transaction", e)
@@ -118,7 +118,7 @@ class TransactionServerRepository @Inject constructor(private val server: String
 
     override suspend fun deleteTransaction(transaction: Transaction) {
         try {
-            client.delete("$server/transactions/${transaction.id}")
+            request(Delete, "transactions/${transaction.id}")
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to delete transaction", e)
         } catch (e: ResponseException) {
@@ -177,7 +177,7 @@ class TransactionServerRepository @Inject constructor(private val server: String
 
     private suspend fun fetchTransactions() {
         try {
-            val transactions: List<Transaction> = client.get("$server/transactions").body()
+            val transactions: List<Transaction> = request(Get, "transactions").body()
             this.transactions.postValue(transactions)
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed fetch transactions", e)
@@ -188,7 +188,7 @@ class TransactionServerRepository @Inject constructor(private val server: String
 
     private suspend fun fetchTags() {
         try {
-            val tags: List<String> = client.get("$server/transactions/tags").body()
+            val tags: List<String> = request(Get, "transactions/tags").body()
             this.tags.postValue(tags)
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to fetch tags", e)
@@ -199,7 +199,7 @@ class TransactionServerRepository @Inject constructor(private val server: String
 
     private suspend fun fetchCategories() {
         try {
-            val categories: List<String> = client.get("$server/transactions/categories").body()
+            val categories: List<String> = request(Get, "transactions/categories").body()
             this.categories.postValue(categories)
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to fetch categories", e)
@@ -210,12 +210,32 @@ class TransactionServerRepository @Inject constructor(private val server: String
 
     private suspend fun fetchTransactees() {
         try {
-            val transactees: List<String> = client.get("$server/transactions/transactees").body()
+            val transactees: List<String> = request(Get, "transactions/transactees").body()
             this.transactees.postValue(transactees)
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to fetch transactees", e)
         } catch (e: ResponseException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to fetch transactees", e)
+        }
+    }
+
+    private suspend fun request(method: HttpMethod, path: String): HttpResponse {
+        return client.request(serverURL) {
+            this.method = method
+            url {
+                appendPathSegments(path)
+            }
+        }
+    }
+
+    private suspend fun request(method: HttpMethod, path: String, body: Transaction): HttpResponse {
+        return client.request(serverURL) {
+            this.method = method
+            url {
+                appendPathSegments(path)
+                contentType(ContentType.Application.Json)
+                setBody(body)
+            }
         }
     }
 }

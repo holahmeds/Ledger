@@ -10,6 +10,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import java.net.URL
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -25,11 +26,13 @@ abstract class LedgerModule {
         @Provides
         fun provideServerRepo(@ApplicationContext appContext: Context): TransactionServerRepository? {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(appContext)
-            val serverURL = sharedPreferences.getString("serverURL", null)
-            if (serverURL == null) {
+            val serverURLStr = sharedPreferences.getString("serverURL", null)
+            if (serverURLStr == null) {
                 Toast.makeText(appContext, "Server URL not set", Toast.LENGTH_LONG).show()
                 return null
             }
+            val serverURL = URL(serverURLStr)
+
             return TransactionServerRepository(serverURL)
         }
     }
