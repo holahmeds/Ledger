@@ -10,6 +10,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import java.net.MalformedURLException
 import java.net.URL
 import javax.inject.Singleton
 
@@ -31,7 +32,13 @@ abstract class LedgerModule {
                 Toast.makeText(appContext, "Server URL not set", Toast.LENGTH_LONG).show()
                 return null
             }
-            val serverURL = URL(serverURLStr)
+            val serverURL: URL
+            try {
+                serverURL = URL(serverURLStr)
+            } catch (e: MalformedURLException) {
+                Toast.makeText(appContext, "Invalid Server URL", Toast.LENGTH_LONG).show()
+                return null
+            }
 
             return TransactionServerRepository(serverURL)
         }

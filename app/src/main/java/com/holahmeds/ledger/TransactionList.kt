@@ -78,6 +78,13 @@ class TransactionList : Fragment() {
             transactionAdapter.setData(list)
         }
 
+        viewModel.getError().observe(viewLifecycleOwner) { error ->
+            when (error) {
+                is LedgerViewModel.Error.None -> binding.newTransactionFab.show()
+                is LedgerViewModel.Error.Some -> binding.newTransactionFab.hide()
+            }
+        }
+
         // Set the adapter
         with(binding.transactionList) {
             layoutManager = LinearLayoutManager(context)

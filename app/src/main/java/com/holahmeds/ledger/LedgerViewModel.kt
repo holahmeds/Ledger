@@ -1,10 +1,7 @@
 package com.holahmeds.ledger
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import androidx.preference.PreferenceManager
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
@@ -28,6 +25,8 @@ class LedgerViewModel @Inject constructor(
     private val tags: MediatorLiveData<List<String>> = MediatorLiveData()
     private val categories: MediatorLiveData<List<String>> = MediatorLiveData()
     private val transactees: MediatorLiveData<List<String>> = MediatorLiveData()
+
+    private var error: MutableLiveData<Error> = MutableLiveData()
 
     init {
         onPreferencesChanged()
@@ -58,6 +57,8 @@ class LedgerViewModel @Inject constructor(
     fun getAllCategories(): LiveData<List<String>> = categories
 
     fun getAllTransactees(): LiveData<List<String>> = transactees
+
+    fun getError(): LiveData<Error> = error
 
     fun onPreferencesChanged() {
         val sharedPreferences =
@@ -91,5 +92,19 @@ class LedgerViewModel @Inject constructor(
         removeSources()
         this.transactionRepo = transactionRepo
         addSources()
+
+        if (transactionRepo == null) {
+            error.value = Error.Some("Repo not initialized")
+        } else {
+            error.value = Error.None()
+        }
+    }
+
+    sealed class Error {
+        class Some(private val errorMessage: String) : Error() {
+            fun errorMessage(): String = errorMessage
+        }
+
+        class None : Error()
     }
 }
