@@ -1,4 +1,4 @@
-package com.holahmeds.ledger
+package com.holahmeds.ledger.fragments
 
 import android.app.DatePickerDialog
 import android.os.Bundle
@@ -14,9 +14,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
+import com.holahmeds.ledger.FetchTransactionException
+import com.holahmeds.ledger.LedgerViewModel
+import com.holahmeds.ledger.R
 import com.holahmeds.ledger.adapters.DateAdapter
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionEditorBinding
+import com.holahmeds.ledger.hideKeyboard
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler
 import kotlinx.coroutines.launch
 import java.math.BigDecimal

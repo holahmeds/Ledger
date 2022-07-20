@@ -1,4 +1,4 @@
-package com.holahmeds.ledger
+package com.holahmeds.ledger.fragments
 
 import android.app.AlertDialog
 import android.content.DialogInterface

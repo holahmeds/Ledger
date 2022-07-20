@@ -1,10 +1,12 @@
-package com.holahmeds.ledger
+package com.holahmeds.ledger.fragments
 
 import android.os.Bundle
 import androidx.fragment.app.activityViewModels
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
+import com.holahmeds.ledger.LedgerViewModel
+import com.holahmeds.ledger.R
 
 class PreferencesFragment : PreferenceFragmentCompat() {
     private val viewModel: LedgerViewModel by activityViewModels()

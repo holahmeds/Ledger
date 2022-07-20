@@ -1,4 +1,4 @@
-package com.holahmeds.ledger
+package com.holahmeds.ledger.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,6 +13,8 @@ import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.holahmeds.ledger.LedgerViewModel
+import com.holahmeds.ledger.R
 import com.holahmeds.ledger.databinding.FragmentChartBinding
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter

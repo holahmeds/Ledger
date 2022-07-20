@@ -1,10 +1,13 @@
-package com.holahmeds.ledger
+package com.holahmeds.ledger.fragments
 
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.NavHostFragment
+import com.holahmeds.ledger.Error
+import com.holahmeds.ledger.LedgerViewModel
+import com.holahmeds.ledger.R
 import com.holahmeds.ledger.databinding.FragmentBannerBinding
 
 class BannerFragment : Fragment(R.layout.fragment_banner) {

@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/transactionList"
-        android:name="com.holahmeds.ledger.TransactionList"
+        android:name="com.holahmeds.ledger.fragments.TransactionList"
         android:label="@string/app_name"
         tools:layout="@layout/fragment_transaction_list">
         <action
@@ -27,7 +27,7 @@
     </fragment>
     <fragment
         android:id="@+id/transactionEditor"
-        android:name="com.holahmeds.ledger.TransactionEditor"
+        android:name="com.holahmeds.ledger.fragments.TransactionEditor"
         android:label="{title}"
         tools:layout="@layout/fragment_transaction_editor">
         <argument
@@ -40,11 +40,11 @@
     </fragment>
     <fragment
         android:id="@+id/chartFragment"
-        android:name="com.holahmeds.ledger.ChartFragment"
+        android:name="com.holahmeds.ledger.fragments.ChartFragment"
         android:label="@string/statistics"
         tools:layout="@layout/fragment_chart" />
     <fragment
         android:id="@+id/preferencesFragment"
-        android:name="com.holahmeds.ledger.PreferencesFragment"
+        android:name="com.holahmeds.ledger.fragments.PreferencesFragment"
         android:label="Preferences" />
 </navigation>
