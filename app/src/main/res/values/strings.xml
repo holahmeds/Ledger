@@ -16,4 +16,5 @@
     <string name="add_new_transaction">Add new transaction</string>
     <string name="statistics">Statistics</string>
     <string name="preferences">Preferences</string>
+    <string name="go_to_settings">Go to Settings</string>
 </resources>

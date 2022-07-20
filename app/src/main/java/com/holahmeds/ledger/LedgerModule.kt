@@ -1,7 +1,6 @@
 package com.holahmeds.ledger
 
 import android.content.Context
-import android.widget.Toast
 import androidx.preference.PreferenceManager
 import com.holahmeds.ledger.database.LedgerDatabase
 import com.holahmeds.ledger.server.TransactionServerRepository
@@ -25,22 +24,18 @@ abstract class LedgerModule {
         }
 
         @Provides
-        fun provideServerRepo(@ApplicationContext appContext: Context): TransactionServerRepository? {
+        fun provideServerRepo(@ApplicationContext appContext: Context): Result<TransactionServerRepository> {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(appContext)
             val serverURLStr = sharedPreferences.getString("serverURL", null)
-            if (serverURLStr == null) {
-                Toast.makeText(appContext, "Server URL not set", Toast.LENGTH_LONG).show()
-                return null
-            }
+                ?: return Result.Failure(Error.InvalidServerURL())
             val serverURL: URL
             try {
                 serverURL = URL(serverURLStr)
             } catch (e: MalformedURLException) {
-                Toast.makeText(appContext, "Invalid Server URL", Toast.LENGTH_LONG).show()
-                return null
+                return Result.Failure(Error.InvalidServerURL())
             }
 
-            return TransactionServerRepository(serverURL)
+            return Result.Success(TransactionServerRepository(serverURL))
         }
     }
 }

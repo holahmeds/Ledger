@@ -9,6 +9,8 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.add
+import androidx.fragment.app.commit
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -80,8 +82,27 @@ class TransactionList : Fragment() {
 
         viewModel.getError().observe(viewLifecycleOwner) { error ->
             when (error) {
-                is LedgerViewModel.Error.None -> binding.newTransactionFab.show()
-                is LedgerViewModel.Error.Some -> binding.newTransactionFab.hide()
+                is Error.None -> {
+                    binding.newTransactionFab.show()
+                    val bannerFragment = childFragmentManager.findFragmentById(R.id.banner)
+                    if (bannerFragment != null) {
+                        childFragmentManager.commit {
+                            setReorderingAllowed(true)
+                            remove(bannerFragment)
+                        }
+                    }
+                }
+                is Error.Some -> {
+                    binding.newTransactionFab.hide()
+                    childFragmentManager.commit {
+                        setReorderingAllowed(true)
+                        val existingBanner = childFragmentManager.findFragmentById(R.id.banner)
+                        if (existingBanner != null) {
+                            remove(existingBanner)
+                        }
+                        add<BannerFragment>(R.id.banner)
+                    }
+                }
             }
         }
 

@@ -16,7 +16,7 @@ import javax.inject.Provider
 class LedgerViewModel @Inject constructor(
     application: Application,
     private val databaseRepoProvider: Provider<TransactionDatabaseRepository>,
-    private val serverRepoProvider: Provider<TransactionServerRepository?>
+    private val serverRepoProvider: Provider<Result<TransactionServerRepository>>
 ) : AndroidViewModel(application) {
     private var transactionRepo: TransactionRepository? = null
 
@@ -65,7 +65,20 @@ class LedgerViewModel @Inject constructor(
             PreferenceManager.getDefaultSharedPreferences(getApplication<Application>().applicationContext)
         val useServer = sharedPreferences.getBoolean("useserver", false)
 
-        setTransactionRepo(if (useServer) serverRepoProvider.get() else databaseRepoProvider.get())
+        if (useServer) {
+            when (val res = serverRepoProvider.get()) {
+                is Result.Success<TransactionServerRepository> -> {
+                    this.error.value = Error.None
+                    setTransactionRepo(res.result)
+                }
+                is Result.Failure -> {
+                    this.error.value = res.error
+                    setTransactionRepo(null)
+                }
+            }
+        } else {
+            setTransactionRepo(databaseRepoProvider.get())
+        }
     }
 
     private fun removeSources() {
@@ -92,19 +105,5 @@ class LedgerViewModel @Inject constructor(
         removeSources()
         this.transactionRepo = transactionRepo
         addSources()
-
-        if (transactionRepo == null) {
-            error.value = Error.Some("Repo not initialized")
-        } else {
-            error.value = Error.None()
-        }
-    }
-
-    sealed class Error {
-        class Some(private val errorMessage: String) : Error() {
-            fun errorMessage(): String = errorMessage
-        }
-
-        class None : Error()
     }
 }
