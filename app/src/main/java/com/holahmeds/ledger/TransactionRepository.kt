@@ -18,7 +18,7 @@ interface TransactionRepository {
      */
     suspend fun updateTransaction(transaction: Transaction)
 
-    suspend fun deleteTransaction(transaction: Transaction)
+    suspend fun deleteTransaction(transactionId: Long)
 
     fun getAllTags(): LiveData<List<String>>
 

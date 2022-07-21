@@ -1,7 +1,10 @@
 package com.holahmeds.ledger.database.dao
 
 import androidx.lifecycle.LiveData
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import com.holahmeds.ledger.database.entities.TransactionEntity
 
 @Dao
@@ -21,6 +24,6 @@ interface TransactionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun add(transaction: TransactionEntity): Long
 
-    @Delete
-    suspend fun delete(transaction: TransactionEntity)
+    @Query("DELETE FROM transaction_table WHERE id=:transactionId")
+    suspend fun delete(transactionId: Long)
 }

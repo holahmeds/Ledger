@@ -104,9 +104,9 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
         }
     }
 
-    override suspend fun deleteTransaction(transaction: Transaction) {
-        database.transactionTagDao().delete(transaction.id)
-        database.transactionDao().delete(TransactionEntity(transaction))
+    override suspend fun deleteTransaction(transactionId: Long) {
+        database.transactionTagDao().delete(transactionId)
+        database.transactionDao().delete(transactionId)
     }
 
     override fun getAllTags(): LiveData<List<String>> {

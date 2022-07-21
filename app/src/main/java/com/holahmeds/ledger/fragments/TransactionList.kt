@@ -5,6 +5,7 @@ import android.os.Environment
 import android.util.Log
 import android.view.*
 import android.widget.Toast
+import androidx.core.os.bundleOf
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -59,19 +60,8 @@ class TransactionList : Fragment() {
         val binding = FragmentTransactionListBinding.inflate(inflater, container, false)
 
         val transactionAdapter = TransactionAdapter { transaction: Transaction ->
-            val dialog = TransactionListMenu(object : TransactionListMenu.ItemSelectedListener {
-                override fun onEditSelected() {
-                    val action = TransactionListDirections.actionEditFromList()
-                    action.transactionID = transaction.id
-                    val navController = NavHostFragment.findNavController(this@TransactionList)
-                    navController.navigate(action)
-                }
-
-                override fun onDeleteSelected() {
-                    viewModel.deleteTransaction(transaction)
-                }
-            })
-
+            val dialog = TransactionListMenu()
+            dialog.arguments = bundleOf(Pair("TRANSACTION_ID", transaction.id))
             dialog.show(parentFragmentManager, "transactionlistmenu")
         }
 

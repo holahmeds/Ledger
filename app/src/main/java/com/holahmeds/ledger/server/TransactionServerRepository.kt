@@ -116,9 +116,9 @@ class TransactionServerRepository @Inject constructor(private val serverURL: URL
         fetchTransactions()
     }
 
-    override suspend fun deleteTransaction(transaction: Transaction) {
+    override suspend fun deleteTransaction(transactionId: Long) {
         try {
-            request(Delete, "transactions/${transaction.id}")
+            request(Delete, "transactions/${transactionId}")
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to delete transaction", e)
         } catch (e: ResponseException) {

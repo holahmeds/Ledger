@@ -46,9 +46,9 @@ class LedgerViewModel @Inject constructor(
         }
     }
 
-    fun deleteTransaction(transaction: Transaction) {
+    fun deleteTransaction(transactionId: Long) {
         viewModelScope.launch {
-            transactionRepo?.deleteTransaction(transaction)
+            transactionRepo?.deleteTransaction(transactionId)
         }
     }
 
