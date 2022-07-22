@@ -1,12 +1,8 @@
 package com.holahmeds.ledger
 
-import android.app.Application
 import androidx.lifecycle.*
-import androidx.preference.PreferenceManager
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
-import com.holahmeds.ledger.database.TransactionDatabaseRepository
-import com.holahmeds.ledger.server.TransactionServerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -14,10 +10,8 @@ import javax.inject.Provider
 
 @HiltViewModel
 class LedgerViewModel @Inject constructor(
-    application: Application,
-    private val databaseRepoProvider: Provider<TransactionDatabaseRepository>,
-    private val serverRepoProvider: Provider<Result<TransactionServerRepository>>
-) : AndroidViewModel(application) {
+    private val repoProvider: Provider<Result<TransactionRepository>>
+) : ViewModel() {
     private var transactionRepo: TransactionRepository? = null
 
     private val transactionsInt: MediatorLiveData<List<Transaction>> = MediatorLiveData()
@@ -61,23 +55,15 @@ class LedgerViewModel @Inject constructor(
     fun getError(): LiveData<Error> = error
 
     fun onPreferencesChanged() {
-        val sharedPreferences =
-            PreferenceManager.getDefaultSharedPreferences(getApplication<Application>().applicationContext)
-        val useServer = sharedPreferences.getBoolean("useserver", false)
-
-        if (useServer) {
-            when (val res = serverRepoProvider.get()) {
-                is Result.Success<TransactionServerRepository> -> {
-                    this.error.value = Error.None
-                    setTransactionRepo(res.result)
-                }
-                is Result.Failure -> {
-                    this.error.value = res.error
-                    setTransactionRepo(null)
-                }
+        when (val res = repoProvider.get()) {
+            is Result.Success<TransactionRepository> -> {
+                this.error.value = Error.None
+                setTransactionRepo(res.result)
             }
-        } else {
-            setTransactionRepo(databaseRepoProvider.get())
+            is Result.Failure -> {
+                this.error.value = res.error
+                setTransactionRepo(null)
+            }
         }
     }
 
