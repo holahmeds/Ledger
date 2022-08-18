@@ -19,8 +19,16 @@ class BannerFragment : Fragment(R.layout.fragment_banner) {
         val binding = FragmentBannerBinding.bind(view)
         viewModel.getError().observe(viewLifecycleOwner) { error ->
             when (error) {
-                is Error.InvalidServerURL -> {
+                is Error.InvalidProperties -> {
                     binding.bannerMessage.text = error.errorMessage()
+                    binding.button.text = getString(R.string.go_to_settings)
+                    binding.button.setOnClickListener {
+                        val navController = NavHostFragment.findNavController(this@BannerFragment)
+                        navController.navigate(R.id.preferencesFragment)
+                    }
+                }
+                is Error.AuthorizationError -> {
+                    binding.bannerMessage.text = getString(R.string.invalid_credentials)
                     binding.button.text = getString(R.string.go_to_settings)
                     binding.button.setOnClickListener {
                         val navController = NavHostFragment.findNavController(this@BannerFragment)

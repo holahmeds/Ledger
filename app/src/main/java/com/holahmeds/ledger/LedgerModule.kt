@@ -37,15 +37,23 @@ abstract class LedgerModule {
             }
 
             val serverURLStr = sharedPreferences.getString("serverURL", null)
-                ?: return Result.Failure(Error.InvalidServerURL())
+                ?: return Result.Failure(Error.InvalidServerURL)
             val serverURL: URL
             try {
                 serverURL = URL(serverURLStr)
             } catch (e: MalformedURLException) {
-                return Result.Failure(Error.InvalidServerURL())
+                return Result.Failure(Error.InvalidServerURL)
             }
 
-            return Result.Success(TransactionServerRepository(serverURL))
+            val username = sharedPreferences.getString("username", null) ?: return Result.Failure(
+                Error.UsernameNotSet
+            )
+            val password = sharedPreferences.getString("password", null) ?: return Result.Failure(
+                Error.PasswordNotSet
+            )
+            val credentials = TransactionServerRepository.Credentials(username, password)
+
+            return TransactionServerRepository.create(serverURL, credentials)
         }
     }
 }

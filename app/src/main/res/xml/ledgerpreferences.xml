@@ -3,10 +3,18 @@
     <PreferenceCategory app:title="Server">
         <SwitchPreference
             app:key="useserver"
-            app:title="Use Server" />
+            app:title="@string/user_server" />
 
         <EditTextPreference
             app:key="serverURL"
-            app:title="Server URL" />
+            app:title="@string/server_url" />
+
+        <EditTextPreference
+            app:key="username"
+            app:title="@string/username" />
+
+        <EditTextPreference
+            app:key="password"
+            app:title="@string/password" />
     </PreferenceCategory>
 </PreferenceScreen>

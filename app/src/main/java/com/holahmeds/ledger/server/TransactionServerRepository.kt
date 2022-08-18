@@ -5,7 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.holahmeds.ledger.Error
 import com.holahmeds.ledger.FetchTransactionException
+import com.holahmeds.ledger.Result
 import com.holahmeds.ledger.TransactionRepository
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
@@ -31,22 +33,54 @@ import java.math.BigDecimal
 import java.net.ConnectException
 import java.net.URL
 import java.time.YearMonth
-import javax.inject.Inject
 
-class TransactionServerRepository @Inject constructor(private val serverURL: URL) :
+class TransactionServerRepository(private val serverURL: URL, authToken: String) :
     TransactionRepository, AutoCloseable {
     companion object {
         const val TRANSACTION_SERVER_REPOSITORY = "TransactionServerRepository"
+        fun create(serverURL: URL, credentials: Credentials): Result<TransactionServerRepository> {
+            val tokenResult = runBlocking(Dispatchers.IO) {
+                return@runBlocking getAuthToken(serverURL, credentials)
+            }
+
+            return when (tokenResult) {
+                is Result.Failure -> {
+                    Result.Failure(tokenResult.error)
+                }
+                is Result.Success -> {
+                    Result.Success(TransactionServerRepository(serverURL, tokenResult.result))
+                }
+            }
+        }
+
+        private suspend fun getAuthToken(serverURL: URL, credentials: Credentials): Result<String> {
+            val authClient = HttpClient(CIO) {
+                install(ContentNegotiation) {
+                    jackson()
+                }
+            }
+            val response = authClient.post(serverURL) {
+                url {
+                    appendPathSegments("auth", "get_token")
+                }
+                setBody(credentials)
+                contentType(ContentType.Application.Json)
+            }
+            if (response.status == HttpStatusCode.NotFound || response.status == HttpStatusCode.Unauthorized) {
+                return Result.Failure(Error.AuthorizationError("Unauthorized"))
+            }
+            val token: String = response.body()
+            return Result.Success(token)
+        }
     }
+
+    data class Credentials(val id: String, val password: String)
 
     private val client = HttpClient(CIO) {
         install(Auth) {
             bearer {
                 loadTokens {
-                    BearerTokens(
-                        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NTgxMjY3NDJ9.ErGHLASuM7oX5GZI6OF_0HbvtpaeJDWzHwMth6FX4xg",
-                        ""
-                    )
+                    BearerTokens(authToken, "")
                 }
             }
         }

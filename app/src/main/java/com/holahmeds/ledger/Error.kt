@@ -5,7 +5,12 @@ sealed class Error {
         fun errorMessage(): String = errorMessage
     }
 
-    class InvalidServerURL : Some("Invalid Server URL")
+    open class InvalidProperties(errorMessage: String) : Some(errorMessage)
+    object InvalidServerURL : InvalidProperties("Invalid Server URL")
+    object UsernameNotSet : InvalidProperties("Username not set")
+    object PasswordNotSet : InvalidProperties("Password not set")
+
+    class AuthorizationError(errorMessage: String) : Some(errorMessage)
 
     object None : Error()
 }
