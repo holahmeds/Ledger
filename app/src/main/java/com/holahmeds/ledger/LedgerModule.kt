@@ -4,14 +4,12 @@ import android.content.Context
 import androidx.preference.PreferenceManager
 import com.holahmeds.ledger.database.LedgerDatabase
 import com.holahmeds.ledger.database.TransactionDatabaseRepository
-import com.holahmeds.ledger.server.TransactionServerRepository
+import com.holahmeds.ledger.server.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import java.net.MalformedURLException
-import java.net.URL
 import javax.inject.Provider
 import javax.inject.Singleton
 
@@ -36,22 +34,20 @@ abstract class LedgerModule {
                 return Result.Success(databaseRepoProvider.get())
             }
 
-            val serverURLStr = sharedPreferences.getString("serverURL", null)
-                ?: return Result.Failure(Error.InvalidServerURL)
-            val serverURL: URL
-            try {
-                serverURL = URL(serverURLStr)
-            } catch (e: MalformedURLException) {
-                return Result.Failure(Error.InvalidServerURL)
+            val serverURL = when (val result = getServerUrl(sharedPreferences)) {
+                is Result.Success -> result.result
+                is Result.Failure -> return Result.Failure(result.error)
             }
 
-            val username = sharedPreferences.getString("username", null) ?: return Result.Failure(
-                Error.UsernameNotSet
-            )
-            val password = sharedPreferences.getString("password", null) ?: return Result.Failure(
-                Error.PasswordNotSet
-            )
-            val credentials = TransactionServerRepository.Credentials(username, password)
+            val username =
+                sharedPreferences.getString(PREFERENCE_USERNAME, null) ?: return Result.Failure(
+                    Error.UsernameNotSet
+                )
+            val password =
+                sharedPreferences.getString(PREFERENCE_PASSWORD, null) ?: return Result.Failure(
+                    Error.PasswordNotSet
+                )
+            val credentials = Credentials(username, password)
 
             return TransactionServerRepository.create(serverURL, credentials)
         }

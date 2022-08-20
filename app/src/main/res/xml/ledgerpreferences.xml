@@ -9,12 +9,9 @@
             app:key="serverURL"
             app:title="@string/server_url" />
 
-        <EditTextPreference
-            app:key="username"
-            app:title="@string/username" />
-
-        <EditTextPreference
-            app:key="password"
-            app:title="@string/password" />
+        <Preference
+            app:key="account"
+            app:title="@string/account"
+            app:fragment="com.holahmeds.ledger.fragments.AccountFragment" />
     </PreferenceCategory>
 </PreferenceScreen>

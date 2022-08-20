@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<navigation xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     app:startDestination="@id/transactionList">
 
@@ -14,8 +14,8 @@
             app:destination="@id/transactionEditor"
             app:popUpTo="@+id/transactionList">
             <argument
-                android:defaultValue="Edit transaction"
-                android:name="title" />
+                android:name="title"
+                android:defaultValue="Edit transaction" />
         </action>
         <action
             android:id="@+id/action_show_chart"
@@ -47,4 +47,14 @@
         android:id="@+id/preferencesFragment"
         android:name="com.holahmeds.ledger.fragments.PreferencesFragment"
         android:label="Preferences" />
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.holahmeds.ledger.fragments.LoginFragment"
+        android:label="@string/login"
+        tools:layout="@layout/fragment_login" />
+    <fragment
+        android:id="@+id/accountFragment"
+        android:name="com.holahmeds.ledger.fragments.AccountFragment"
+        android:label="@string/account"
+        tools:layout="@layout/fragment_account" />
 </navigation>

@@ -5,7 +5,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.holahmeds.ledger.Error
 import com.holahmeds.ledger.FetchTransactionException
 import com.holahmeds.ledger.Result
 import com.holahmeds.ledger.TransactionRepository
@@ -52,29 +51,7 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
                 }
             }
         }
-
-        private suspend fun getAuthToken(serverURL: URL, credentials: Credentials): Result<String> {
-            val authClient = HttpClient(CIO) {
-                install(ContentNegotiation) {
-                    jackson()
-                }
-            }
-            val response = authClient.post(serverURL) {
-                url {
-                    appendPathSegments("auth", "get_token")
-                }
-                setBody(credentials)
-                contentType(ContentType.Application.Json)
-            }
-            if (response.status == HttpStatusCode.NotFound || response.status == HttpStatusCode.Unauthorized) {
-                return Result.Failure(Error.AuthorizationError("Unauthorized"))
-            }
-            val token: String = response.body()
-            return Result.Success(token)
-        }
     }
-
-    data class Credentials(val id: String, val password: String)
 
     private val client = HttpClient(CIO) {
         install(Auth) {

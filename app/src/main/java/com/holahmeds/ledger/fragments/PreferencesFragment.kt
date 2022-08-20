@@ -1,40 +1,51 @@
 package com.holahmeds.ledger.fragments
 
 import android.os.Bundle
-import android.text.InputType
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.NavHostFragment
 import androidx.preference.EditTextPreference
+import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import com.holahmeds.ledger.LedgerViewModel
 import com.holahmeds.ledger.R
+import com.holahmeds.ledger.server.PREFERENCE_SERVER_URL
 
-class PreferencesFragment : PreferenceFragmentCompat() {
+class PreferencesFragment : PreferenceFragmentCompat(),
+    PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
     private val viewModel: LedgerViewModel by activityViewModels()
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.ledgerpreferences, rootKey)
 
         val useServer: SwitchPreference? = findPreference("useserver")
-        val serverURL: EditTextPreference? = findPreference("serverURL")
+        val serverURL: EditTextPreference? = findPreference(PREFERENCE_SERVER_URL)
         serverURL?.summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
 
-        val username: EditTextPreference? = findPreference("username")
-        username?.summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
-
-        val password: EditTextPreference? = findPreference("password")
-        password?.setOnBindEditTextListener { editText ->
-            editText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-        }
+        val account: Preference? = findPreference("account")
 
         // disable serverURL if userServer is false
         useServer?.setOnPreferenceChangeListener { _, newValue ->
             serverURL?.isEnabled = newValue as Boolean
-            username?.isEnabled = newValue
-            password?.isEnabled = newValue
+            account?.isEnabled = newValue
             true
         }
         serverURL?.isEnabled = useServer?.isChecked ?: false
+        account?.isEnabled = useServer?.isChecked ?: false
+    }
+
+    override fun onPreferenceStartFragment(
+        caller: PreferenceFragmentCompat,
+        pref: Preference
+    ): Boolean {
+        val navController = NavHostFragment.findNavController(this)
+        when (pref.fragment) {
+            "com.holahmeds.ledger.fragments.AccountFragment" -> {
+                navController.navigate(R.id.accountFragment)
+                return true
+            }
+        }
+        return false
     }
 
     override fun onStop() {

@@ -22,4 +22,10 @@
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="invalid_credentials">Invalid credentials</string>
+    <string name="login">Login</string>
+    <string name="account">Account</string>
+    <string name="error_username_blank">Username cannot be blank</string>
+    <string name="error_password_blank">Password cannot be blank</string>
+    <string name="error_server_url_format_invalid">Server URL is invalid</string>
+    <string name="error_authentication_failed">Authenticated Failed</string>
 </resources>
