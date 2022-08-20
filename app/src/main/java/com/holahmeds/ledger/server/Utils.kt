@@ -11,6 +11,8 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.net.ConnectException
 import java.net.MalformedURLException
 import java.net.URL
@@ -18,7 +20,7 @@ import java.net.URL
 suspend fun getAuthToken(
     serverURL: URL,
     credentials: Credentials
-): Result<String> {
+): Result<String> = withContext(Dispatchers.IO) {
     val authClient = HttpClient(CIO) {
         install(ContentNegotiation) {
             jackson()
@@ -34,13 +36,13 @@ suspend fun getAuthToken(
             contentType(ContentType.Application.Json)
         }
     } catch (e: ConnectException) {
-        return Result.Failure(Error.ConnectionError)
+        return@withContext Result.Failure(Error.ConnectionError)
     }
     if (response.status == HttpStatusCode.NotFound || response.status == HttpStatusCode.Unauthorized) {
-        return Result.Failure(Error.AuthorizationError("Unauthorized"))
+        return@withContext Result.Failure(Error.AuthorizationError("Unauthorized"))
     }
     val token: String = response.body()
-    return Result.Success(token)
+    return@withContext Result.Success(token)
 }
 
 fun getServerUrl(sharedPreferences: SharedPreferences): Result<URL> {

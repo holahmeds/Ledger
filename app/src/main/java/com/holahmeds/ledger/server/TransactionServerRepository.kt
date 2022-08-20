@@ -26,8 +26,7 @@ import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpMethod.Companion.Put
 import io.ktor.serialization.jackson.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import java.math.BigDecimal
 import java.net.ConnectException
 import java.net.URL
@@ -38,7 +37,7 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
     companion object {
         const val TRANSACTION_SERVER_REPOSITORY = "TransactionServerRepository"
         fun create(serverURL: URL, credentials: Credentials): Result<TransactionServerRepository> {
-            val tokenResult = runBlocking(Dispatchers.IO) {
+            val tokenResult = runBlocking {
                 return@runBlocking getAuthToken(serverURL, credentials)
             }
 
@@ -89,6 +88,8 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
     private val categories: MutableLiveData<List<String>> = MutableLiveData()
     private val transactees: MutableLiveData<List<String>> = MutableLiveData()
 
+    private val scope = CoroutineScope(Dispatchers.IO)
+
     override suspend fun getTransaction(transactionId: Long): Transaction {
         try {
             return request(Get, "transactions/$transactionId").body()
@@ -100,7 +101,7 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
     }
 
     override fun getTransactions(): LiveData<List<Transaction>> {
-        runBlocking(Dispatchers.IO) {
+        scope.launch {
             fetchTransactions()
         }
         return transactions
@@ -124,7 +125,9 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
         } catch (e: ResponseException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to update transaction", e)
         }
-        fetchTransactions()
+        scope.launch {
+            fetchTransactions()
+        }
     }
 
     override suspend fun deleteTransaction(transactionId: Long) {
@@ -135,38 +138,41 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
         } catch (e: ResponseException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to delete transaction", e)
         }
-        fetchTransactions()
+        scope.launch {
+            fetchTransactions()
+        }
     }
 
     override fun getAllTags(): LiveData<List<String>> {
-        runBlocking(Dispatchers.IO) {
+        scope.launch {
             fetchTags()
         }
         return tags
     }
 
     override fun getAllCategories(): LiveData<List<String>> {
-        runBlocking(Dispatchers.IO) {
+        scope.launch {
             fetchCategories()
         }
         return categories
     }
 
     override fun getAllTransactees(): LiveData<List<String>> {
-        runBlocking(Dispatchers.IO) {
+        scope.launch {
             fetchTransactees()
         }
         return transactees
     }
 
     override fun getMonthlyTotals(): LiveData<List<TransactionTotals>> {
-        runBlocking(Dispatchers.IO) {
+        scope.launch {
             fetchTransactees()
         }
         return monthlyTotal
     }
 
     override fun close() {
+        scope.cancel()
         client.close()
     }
 
@@ -230,23 +236,25 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
         }
     }
 
-    private suspend fun request(method: HttpMethod, path: String): HttpResponse {
-        return client.request(serverURL) {
-            this.method = method
-            url {
-                appendPathSegments(path)
+    private suspend fun request(method: HttpMethod, path: String): HttpResponse =
+        withContext(Dispatchers.IO) {
+            client.request(serverURL) {
+                this.method = method
+                url {
+                    appendPathSegments(path)
+                }
             }
         }
-    }
 
-    private suspend fun request(method: HttpMethod, path: String, body: Transaction): HttpResponse {
-        return client.request(serverURL) {
-            this.method = method
-            url {
-                appendPathSegments(path)
-                contentType(ContentType.Application.Json)
-                setBody(body)
+    private suspend fun request(method: HttpMethod, path: String, body: Transaction): HttpResponse =
+        withContext(Dispatchers.IO) {
+            client.request(serverURL) {
+                this.method = method
+                url {
+                    appendPathSegments(path)
+                    contentType(ContentType.Application.Json)
+                    setBody(body)
+                }
             }
         }
-    }
 }

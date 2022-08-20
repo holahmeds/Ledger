@@ -6,6 +6,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.textfield.TextInputLayout
@@ -14,8 +15,7 @@ import com.holahmeds.ledger.R
 import com.holahmeds.ledger.Result
 import com.holahmeds.ledger.databinding.FragmentLoginBinding
 import com.holahmeds.ledger.server.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import java.net.URL
 
 class LoginFragment : Fragment(R.layout.fragment_login) {
@@ -71,24 +71,23 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 binding.loginUsername.text.toString(),
                 binding.loginPassword.text.toString()
             )
-            val authResult = runBlocking(Dispatchers.IO) {
-                getAuthToken(serverURL, credentials)
-            }
-            when (authResult) {
-                is Result.Success -> {
-                    with(sharedPreferences.edit()) {
-                        putString(PREFERENCE_USERNAME, credentials.id)
-                        putString(PREFERENCE_PASSWORD, credentials.password)
-                        apply()
+            val navController = NavHostFragment.findNavController(this)
+            lifecycleScope.launch {
+                when (getAuthToken(serverURL, credentials)) {
+                    is Result.Success -> {
+                        with(sharedPreferences.edit()) {
+                            putString(PREFERENCE_USERNAME, credentials.id)
+                            putString(PREFERENCE_PASSWORD, credentials.password)
+                            apply()
+                        }
+                        navController.popBackStack()
                     }
-                    val navController = NavHostFragment.findNavController(this)
-                    navController.popBackStack()
+                    is Result.Failure -> Toast.makeText(
+                        requireContext(),
+                        getString(R.string.error_authentication_failed),
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
-                is Result.Failure -> Toast.makeText(
-                    requireContext(),
-                    getString(R.string.error_authentication_failed),
-                    Toast.LENGTH_LONG
-                ).show()
             }
         }
     }
