@@ -28,4 +28,6 @@
     <string name="error_password_blank">Password cannot be blank</string>
     <string name="error_server_url_format_invalid">Server URL is invalid</string>
     <string name="error_authentication_failed">Authenticated Failed</string>
+    <string name="error_unable_to_connect">Unable to connect to the server</string>
+    <string name="go_to_account">Go to account settings</string>
 </resources>

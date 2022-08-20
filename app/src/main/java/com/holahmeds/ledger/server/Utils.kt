@@ -8,8 +8,10 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
+import java.net.ConnectException
 import java.net.MalformedURLException
 import java.net.URL
 
@@ -22,12 +24,17 @@ suspend fun getAuthToken(
             jackson()
         }
     }
-    val response = authClient.post(serverURL) {
-        url {
-            appendPathSegments("auth", "get_token")
+    val response: HttpResponse
+    try {
+        response = authClient.post(serverURL) {
+            url {
+                appendPathSegments("auth", "get_token")
+            }
+            setBody(credentials)
+            contentType(ContentType.Application.Json)
         }
-        setBody(credentials)
-        contentType(ContentType.Application.Json)
+    } catch (e: ConnectException) {
+        return Result.Failure(Error.ConnectionError)
     }
     if (response.status == HttpStatusCode.NotFound || response.status == HttpStatusCode.Unauthorized) {
         return Result.Failure(Error.AuthorizationError("Unauthorized"))

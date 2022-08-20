@@ -12,5 +12,7 @@ sealed class Error {
 
     class AuthorizationError(errorMessage: String) : Some(errorMessage)
 
+    object ConnectionError : Some("ConnectionError")
+
     object None : Error()
 }
