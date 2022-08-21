@@ -27,7 +27,8 @@
                 android:hint="@string/date_label"
                 android:imeOptions="actionNext"
                 android:inputType="date"
-                android:nextFocusForward="@id/category_view" />
+                android:nextFocusForward="@id/category_view"
+                tools:ignore="TextContrastCheck" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -46,7 +47,8 @@
                 android:imeOptions="actionNext"
                 android:inputType="textCapWords"
                 android:nextFocusForward="@id/transactee_view"
-                android:padding="12dp" />
+                android:padding="12dp"
+                tools:ignore="TextContrastCheck" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -64,7 +66,8 @@
                 android:imeOptions="actionNext"
                 android:inputType="textCapWords"
                 android:nextFocusForward="@id/amount_view"
-                android:padding="12dp" />
+                android:padding="12dp"
+                tools:ignore="TextContrastCheck" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -82,7 +85,8 @@
                 android:hint="@string/amount_label"
                 android:imeOptions="actionNext"
                 android:inputType="numberDecimal"
-                android:nextFocusForward="@id/note_view" />
+                android:nextFocusForward="@id/note_view"
+                tools:ignore="TextContrastCheck" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.chip.ChipGroup
@@ -126,7 +130,8 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/note"
                 android:inputType="textMultiLine|textCapSentences"
-                android:lines="3" />
+                android:lines="3"
+                tools:ignore="TextContrastCheck" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
