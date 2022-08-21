@@ -2,17 +2,17 @@ package com.holahmeds.ledger.fragments
 
 import android.os.Bundle
 import android.view.View
-import android.widget.EditText
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.preference.PreferenceManager
-import com.google.android.material.textfield.TextInputLayout
 import com.holahmeds.ledger.Error
 import com.holahmeds.ledger.R
 import com.holahmeds.ledger.Result
+import com.holahmeds.ledger.TextNotEmptyValidation
 import com.holahmeds.ledger.databinding.FragmentLoginBinding
 import com.holahmeds.ledger.server.*
 import kotlinx.coroutines.launch
@@ -24,7 +24,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
         val binding = FragmentLoginBinding.bind(view)
 
-        val loginUsernameValidation = EmptyValidation(
+        val loginUsernameValidation = TextNotEmptyValidation(
             binding.loginUsername,
             binding.loginUsernameLayout,
             getString(R.string.error_username_blank)
@@ -33,7 +33,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             loginUsernameValidation.runValidation()
         })
 
-        val loginPasswordValidation = EmptyValidation(
+        val loginPasswordValidation = TextNotEmptyValidation(
             binding.loginPassword,
             binding.loginPasswordLayout,
             getString(R.string.error_password_blank)
@@ -90,22 +90,10 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 }
             }
         }
-    }
 
-    class EmptyValidation(
-        private val text: EditText,
-        private val textLayout: TextInputLayout,
-        private val errorMessage: String
-    ) {
-        fun runValidation(): Boolean {
-            return if (text.text.isNullOrBlank()) {
-                textLayout.error = errorMessage
-                false
-            } else {
-                textLayout.error = null
-                textLayout.isErrorEnabled = false
-                true
-            }
+        binding.loginSignupButton.setOnClickListener {
+            findNavController().navigate(R.id.action_signup_start)
         }
     }
+
 }

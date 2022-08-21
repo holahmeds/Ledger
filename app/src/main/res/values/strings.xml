@@ -30,4 +30,10 @@
     <string name="error_authentication_failed">Authenticated Failed</string>
     <string name="error_unable_to_connect">Unable to connect to the server</string>
     <string name="go_to_account">Go to account settings</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="signup">Signup</string>
+    <string name="error_passwords_not_matching">Passwords do not match</string>
+    <string name="error_user_already_exists">User already exists</string>
+    <string name="error_unkown">Unknown error</string>
+    <string name="error_signup_disabled">Signup disabled for this server</string>
 </resources>

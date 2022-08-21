@@ -14,5 +14,8 @@ sealed class Error {
 
     object ConnectionError : Some("ConnectionError")
 
+    object UserAlreadyExists : Some("User already exists")
+    object SignupDisabled : Some("Signup disable")
+
     object None : Error()
 }

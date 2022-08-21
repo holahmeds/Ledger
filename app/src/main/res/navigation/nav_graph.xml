@@ -51,10 +51,29 @@
         android:id="@+id/loginFragment"
         android:name="com.holahmeds.ledger.fragments.LoginFragment"
         android:label="@string/login"
-        tools:layout="@layout/fragment_login" />
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_signup_start"
+            app:destination="@id/signupFragment" />
+    </fragment>
     <fragment
         android:id="@+id/accountFragment"
         android:name="com.holahmeds.ledger.fragments.AccountFragment"
         android:label="@string/account"
-        tools:layout="@layout/fragment_account" />
+        tools:layout="@layout/fragment_account">
+        <action
+            android:id="@+id/action_login_start"
+            app:destination="@id/loginFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/signupFragment"
+        android:name="com.holahmeds.ledger.fragments.SignupFragment"
+        android:label="@string/signup"
+        tools:layout="@layout/fragment_signup">
+        <action
+            android:id="@+id/action_signup_success"
+            app:destination="@id/accountFragment"
+            app:popUpTo="@id/accountFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 </navigation>
