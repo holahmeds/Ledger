@@ -1,4 +1,4 @@
-package com.holahmeds.ledger.fragments
+package com.holahmeds.ledger.ui.fragments
 
 import android.app.DatePickerDialog
 import android.os.Bundle
@@ -20,7 +20,7 @@ import com.holahmeds.ledger.R
 import com.holahmeds.ledger.adapters.DateAdapter
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionEditorBinding
-import com.holahmeds.ledger.hideKeyboard
+import com.holahmeds.ledger.ui.hideKeyboard
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler
 import kotlinx.coroutines.launch
 import java.math.BigDecimal

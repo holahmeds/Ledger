@@ -1,4 +1,4 @@
-package com.holahmeds.ledger.fragments
+package com.holahmeds.ledger.ui.fragments
 
 import android.os.Bundle
 import androidx.fragment.app.activityViewModels
@@ -40,7 +40,7 @@ class PreferencesFragment : PreferenceFragmentCompat(),
     ): Boolean {
         val navController = NavHostFragment.findNavController(this)
         when (pref.fragment) {
-            "com.holahmeds.ledger.fragments.AccountFragment" -> {
+            "com.holahmeds.ledger.ui.fragments.AccountFragment" -> {
                 navController.navigate(R.id.accountFragment)
                 return true
             }

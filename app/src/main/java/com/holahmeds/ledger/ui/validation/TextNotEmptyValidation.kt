@@ -1,4 +1,4 @@
-package com.holahmeds.ledger
+package com.holahmeds.ledger.ui.validation
 
 import android.widget.EditText
 import com.google.android.material.textfield.TextInputLayout

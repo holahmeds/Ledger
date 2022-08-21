@@ -1,4 +1,4 @@
-package com.holahmeds.ledger
+package com.holahmeds.ledger.ui
 
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.ChipDrawable
 import com.google.android.material.chip.ChipGroup
+import com.holahmeds.ledger.R
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.BalanceCardBinding
 import com.holahmeds.ledger.databinding.TransactionCardBinding

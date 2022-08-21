@@ -12,6 +12,6 @@
         <Preference
             app:key="account"
             app:title="@string/account"
-            app:fragment="com.holahmeds.ledger.fragments.AccountFragment" />
+            app:fragment="com.holahmeds.ledger.ui.fragments.AccountFragment" />
     </PreferenceCategory>
 </PreferenceScreen>

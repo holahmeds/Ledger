@@ -1,4 +1,4 @@
-package com.holahmeds.ledger.fragments
+package com.holahmeds.ledger.ui.fragments
 
 import android.os.Bundle
 import android.os.Environment
@@ -15,9 +15,13 @@ import androidx.fragment.app.commit
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.holahmeds.ledger.*
+import com.holahmeds.ledger.Error
+import com.holahmeds.ledger.LedgerViewModel
+import com.holahmeds.ledger.R
+import com.holahmeds.ledger.TransactionSerializer
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionListBinding
+import com.holahmeds.ledger.ui.TransactionAdapter
 import java.io.File
 
 class TransactionList : Fragment() {

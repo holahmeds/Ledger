@@ -1,4 +1,4 @@
-package com.holahmeds.ledger.fragments
+package com.holahmeds.ledger.ui.fragments
 
 import android.os.Bundle
 import android.view.View
@@ -12,9 +12,9 @@ import androidx.preference.PreferenceManager
 import com.holahmeds.ledger.Error
 import com.holahmeds.ledger.R
 import com.holahmeds.ledger.Result
-import com.holahmeds.ledger.TextNotEmptyValidation
 import com.holahmeds.ledger.databinding.FragmentLoginBinding
 import com.holahmeds.ledger.server.*
+import com.holahmeds.ledger.ui.validation.TextNotEmptyValidation
 import kotlinx.coroutines.launch
 import java.net.URL
 
