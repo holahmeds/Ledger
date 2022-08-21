@@ -2,8 +2,6 @@ package com.holahmeds.ledger.ui.fragments
 
 import android.app.DatePickerDialog
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,6 +19,9 @@ import com.holahmeds.ledger.adapters.DateAdapter
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionEditorBinding
 import com.holahmeds.ledger.ui.hideKeyboard
+import com.holahmeds.ledger.ui.validation.RegexValidation
+import com.holahmeds.ledger.ui.validation.TextNotEmptyValidation
+import com.holahmeds.ledger.ui.validation.Validation
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -31,6 +32,8 @@ class TransactionEditor : Fragment() {
 
     private var _binding: FragmentTransactionEditorBinding? = null
     private val binding get() = _binding!!
+
+    private val validations = mutableListOf<Validation>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -77,14 +80,14 @@ class TransactionEditor : Fragment() {
         binding.dateView.setOnClickListener {
             context?.let { context ->
                 DatePickerDialog(
-                        context,
-                        { _: DatePicker, year: Int, month: Int, day: Int ->
-                            date = LocalDate.of(year, month + 1, day)
-                            updateDateView(date)
-                        },
-                        date.year,
-                        date.monthValue - 1,
-                        date.dayOfMonth
+                    context,
+                    { _: DatePicker, year: Int, month: Int, day: Int ->
+                        date = LocalDate.of(year, month + 1, day)
+                        updateDateView(date)
+                    },
+                    date.year,
+                    date.monthValue - 1,
+                    date.dayOfMonth
                 ).show()
             }
         }
@@ -129,7 +132,8 @@ class TransactionEditor : Fragment() {
         }
 
         binding.saveButton.setOnClickListener {
-            if (inputHasErrors()) {
+            val success = runValidation()
+            if (!success) {
                 Toast.makeText(context, "Invalid data", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
@@ -161,7 +165,8 @@ class TransactionEditor : Fragment() {
                 view.chipValues
             }
 
-            val newTransaction = Transaction(transactionID, date, amount, category, transactee, note, tags)
+            val newTransaction =
+                Transaction(transactionID, date, amount, category, transactee, note, tags)
             viewModel.updateTransaction(newTransaction)
 
             hideKeyboard(requireActivity())
@@ -169,45 +174,30 @@ class TransactionEditor : Fragment() {
         }
     }
 
-    private fun updateCategoryError() {
-        binding.categoryLayout.error = if (binding.categoryView.text.isNullOrBlank()) {
-            getString(R.string.category_error)
-        } else {
-            null
+    private fun runValidation(): Boolean {
+        var success = true
+        for (validation in validations) {
+            success = success and validation.runValidation()
         }
-    }
-
-    private fun updateAmountError() {
-        val amountRegex = Regex("\\d+(\\.\\d{0,2})?")
-
-        binding.amountLayout.error = if (!binding.amountView.text.toString().matches(amountRegex)) {
-            getString(R.string.amount_error)
-        } else {
-            null
-        }
-    }
-
-    private fun inputHasErrors(): Boolean {
-        updateCategoryError()
-        updateAmountError()
-        return binding.amountLayout.error != null || binding.categoryLayout.error != null
+        return success
     }
 
     private fun addErrorListeners() {
-        binding.categoryView.addTextChangedListener(object : TextWatcher {
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-            override fun afterTextChanged(text: Editable?) {
-                updateCategoryError()
-            }
-        })
-        binding.amountView.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-            override fun afterTextChanged(text: Editable?) {
-                updateAmountError()
-            }
-        })
+        validations.add(
+            TextNotEmptyValidation(
+                binding.categoryView,
+                binding.categoryLayout,
+                getString(R.string.category_error)
+            )
+        )
+        validations.add(
+            RegexValidation(
+                binding.amountView,
+                binding.amountLayout,
+                Regex("\\d+(\\.\\d{0,2})?"),
+                getString(R.string.amount_error)
+            )
+        )
     }
 
     private fun updateDateView(date: LocalDate) {

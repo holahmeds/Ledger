@@ -3,7 +3,6 @@ package com.holahmeds.ledger.ui.fragments
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -29,28 +28,17 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
             binding.signupUsernameLayout,
             getString(R.string.error_username_blank)
         )
-        binding.signupUsername.addTextChangedListener(afterTextChanged = {
-            usernameEmptyValidation.runValidation()
-        })
-
         val passwordEmptyValidation = TextNotEmptyValidation(
             binding.signupPassword,
             binding.signupPasswordLayout,
             getString(R.string.error_password_blank)
         )
-        binding.signupPassword.addTextChangedListener(afterTextChanged = {
-            passwordEmptyValidation.runValidation()
-        })
-
         val passwordMatchValidation = TextMatchingValidation(
             binding.signupPassword,
             binding.signupPasswordConfirm,
             binding.signupPasswordConfirmLayout,
             getString(R.string.error_passwords_not_matching)
         )
-        binding.signupPasswordConfirm.addTextChangedListener(afterTextChanged = {
-            passwordMatchValidation.runValidation()
-        })
 
         binding.signupButton.setOnClickListener {
             val success =

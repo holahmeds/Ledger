@@ -17,8 +17,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/edit_text_margin"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="@dimen/edit_text_margin"
-            app:errorEnabled="true">
+            android:layout_marginEnd="@dimen/edit_text_margin">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/date_view"
@@ -37,8 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/edit_text_margin"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="@dimen/edit_text_margin"
-            app:errorEnabled="true">
+            android:layout_marginEnd="@dimen/edit_text_margin">
 
             <AutoCompleteTextView
                 android:id="@+id/category_view"
@@ -56,8 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/edit_text_margin"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="@dimen/edit_text_margin"
-            app:errorEnabled="true">
+            android:layout_marginEnd="@dimen/edit_text_margin">
 
             <AutoCompleteTextView
                 android:id="@+id/transactee_view"
@@ -76,8 +73,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/edit_text_margin"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="@dimen/edit_text_margin"
-            app:errorEnabled="true">
+            android:layout_marginEnd="@dimen/edit_text_margin">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/amount_view"
@@ -121,9 +117,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/edit_text_margin"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="@dimen/edit_text_margin"
-            app:errorEnabled="true">
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="@dimen/edit_text_margin">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/note_view"
@@ -139,8 +134,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/edit_text_margin"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="@dimen/edit_text_margin"
-            app:errorEnabled="true">
+            android:layout_marginEnd="@dimen/edit_text_margin">
 
             <com.hootsuite.nachos.NachoTextView
                 android:id="@+id/tags_view"
