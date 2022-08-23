@@ -36,12 +36,11 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
     TransactionRepository, AutoCloseable {
     companion object {
         const val TRANSACTION_SERVER_REPOSITORY = "TransactionServerRepository"
-        fun create(serverURL: URL, credentials: Credentials): Result<TransactionServerRepository> {
-            val tokenResult = runBlocking {
-                return@runBlocking getAuthToken(serverURL, credentials)
-            }
-
-            return when (tokenResult) {
+        suspend fun create(
+            serverURL: URL,
+            credentials: Credentials
+        ): Result<TransactionServerRepository> {
+            return when (val tokenResult = getAuthToken(serverURL, credentials)) {
                 is Result.Failure -> {
                     Result.Failure(tokenResult.error)
                 }

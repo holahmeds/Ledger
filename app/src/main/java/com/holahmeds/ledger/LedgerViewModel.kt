@@ -6,11 +6,10 @@ import com.holahmeds.ledger.data.TransactionTotals
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import javax.inject.Provider
 
 @HiltViewModel
 class LedgerViewModel @Inject constructor(
-    private val repoProvider: Provider<Result<TransactionRepository>>
+    private val transactionRepoFactory: TransactionRepoFactory
 ) : ViewModel() {
     private var transactionRepo: TransactionRepository? = null
 
@@ -55,14 +54,16 @@ class LedgerViewModel @Inject constructor(
     fun getError(): LiveData<Error> = error
 
     fun onPreferencesChanged() {
-        when (val res = repoProvider.get()) {
-            is Result.Success<TransactionRepository> -> {
-                this.error.value = Error.None
-                setTransactionRepo(res.result)
-            }
-            is Result.Failure -> {
-                this.error.value = res.error
-                setTransactionRepo(null)
+        viewModelScope.launch {
+            when (val res = transactionRepoFactory.createRepo()) {
+                is Result.Success<TransactionRepository> -> {
+                    setError(Error.None)
+                    setTransactionRepo(res.result)
+                }
+                is Result.Failure -> {
+                    setError(res.error)
+                    setTransactionRepo(null)
+                }
             }
         }
     }
@@ -91,5 +92,9 @@ class LedgerViewModel @Inject constructor(
         removeSources()
         this.transactionRepo = transactionRepo
         addSources()
+    }
+
+    private fun setError(error: Error) {
+        this.error.value = error
     }
 }
