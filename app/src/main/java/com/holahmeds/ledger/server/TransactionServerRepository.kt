@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.holahmeds.ledger.FetchTransactionException
+import com.holahmeds.ledger.Error
 import com.holahmeds.ledger.Result
 import com.holahmeds.ledger.TransactionRepository
 import com.holahmeds.ledger.data.Transaction
@@ -89,13 +89,17 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    override suspend fun getTransaction(transactionId: Long): Transaction {
+    override suspend fun getTransaction(transactionId: Long): Result<Transaction> {
         try {
-            return request(Get, "transactions/$transactionId").body()
+            val transaction = request(Get, "transactions/$transactionId").body<Transaction>()
+            return Result.Success(transaction)
         } catch (e: ConnectException) {
-            throw FetchTransactionException(e)
+            return Result.Failure(Error.ConnectionError)
         } catch (e: ResponseException) {
-            throw FetchTransactionException(e)
+            if (e.response.status == HttpStatusCode.NotFound) {
+                return Result.Failure(Error.TransactionNotFoundError)
+            }
+            return Result.Failure(Error.Some("Unknown error"))
         }
     }
 
@@ -112,8 +116,8 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
      * If transaction.id == 0, then inserts the transaction. If transaction.id != 0, updates the
      * transaction with that ID
      */
-    override suspend fun updateTransaction(transaction: Transaction) {
-        try {
+    override suspend fun updateTransaction(transaction: Transaction): Result<Long> {
+        val response = try {
             if (transaction.id == 0L) {
                 request(Post, "transactions", transaction)
             } else {
@@ -121,12 +125,17 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
             }
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to update transaction", e)
+            return Result.Failure(Error.ConnectionError)
         } catch (e: ResponseException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to update transaction", e)
+            return Result.Failure(Error.ConnectionError)
         }
         scope.launch {
             fetchTransactions()
         }
+
+        val returnedTransaction = response.body<Transaction>()
+        return Result.Success(returnedTransaction.id)
     }
 
     override suspend fun deleteTransaction(transactionId: Long) {

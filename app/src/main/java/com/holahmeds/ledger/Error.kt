@@ -17,5 +17,7 @@ sealed class Error {
     object UserAlreadyExists : Some("User already exists")
     object SignupDisabled : Some("Signup disable")
 
+    object TransactionNotFoundError : Some("Transaction not Found")
+
     object None : Error()
 }

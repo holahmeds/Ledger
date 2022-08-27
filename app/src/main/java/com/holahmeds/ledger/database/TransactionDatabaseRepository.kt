@@ -3,6 +3,8 @@ package com.holahmeds.ledger.database
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Transformations
+import com.holahmeds.ledger.Error
+import com.holahmeds.ledger.Result
 import com.holahmeds.ledger.TransactionRepository
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
@@ -62,25 +64,27 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
         }
     }
 
-    override suspend fun getTransaction(transactionId: Long): Transaction {
+    override suspend fun getTransaction(transactionId: Long): Result<Transaction> {
         val transactionEntity = database.transactionDao().get(transactionId)
+            ?: return Result.Failure(Error.TransactionNotFoundError)
         val tags = database.transactionTagDao().getTagsForTransaction(transactionId)
-        return transactionEntity.makeTransaction(tags)
+        return Result.Success(transactionEntity.makeTransaction(tags))
     }
 
     override fun getTransactions(): LiveData<List<Transaction>> = transactions
 
-    override suspend fun updateTransaction(transaction: Transaction) = coroutineScope {
-        val transactionDao = database.transactionDao()
-        val tagDao = database.tagDao()
-        val transactionTagDao = database.transactionTagDao()
+    override suspend fun updateTransaction(transaction: Transaction): Result<Long> =
+        coroutineScope {
+            val transactionDao = database.transactionDao()
+            val tagDao = database.tagDao()
+            val transactionTagDao = database.transactionTagDao()
 
-        val transactionId = transactionDao.add(TransactionEntity(transaction))
+            val transactionId = transactionDao.add(TransactionEntity(transaction))
 
-        val oldTags = transactionTagDao.getTagsForTransaction(transaction.id)
+            val oldTags = transactionTagDao.getTagsForTransaction(transaction.id)
 
-        val removedTags = async {
-            val list = mutableListOf<Long>()
+            val removedTags = async {
+                val list = mutableListOf<Long>()
             for (tag in oldTags) {
                 if (!transaction.tags.contains(tag)) {
                     val id = tagDao.getTagId(tag)
@@ -93,15 +97,17 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
         }
         transactionTagDao.delete(transaction.id, removedTags.await())
 
-        for (t in transaction.tags) {
-            if (!oldTags.contains(t)) {
-                var tagId = tagDao.getTagId(t)
-                if (tagId == null) {
-                    tagId = tagDao.add(Tag(0, t))
+            for (t in transaction.tags) {
+                if (!oldTags.contains(t)) {
+                    var tagId = tagDao.getTagId(t)
+                    if (tagId == null) {
+                        tagId = tagDao.add(Tag(0, t))
+                    }
+                    transactionTagDao.add(TransactionTag(transactionId, tagId))
                 }
-                transactionTagDao.add(TransactionTag(transactionId, tagId))
             }
-        }
+
+            Result.Success(transactionId)
     }
 
     override suspend fun deleteTransaction(transactionId: Long) {

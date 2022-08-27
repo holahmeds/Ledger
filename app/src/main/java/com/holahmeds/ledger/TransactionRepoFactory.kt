@@ -19,9 +19,8 @@ class TransactionRepoFactory @Inject constructor(
             return Result.Success(databaseRepoProvider.get())
         }
 
-        val serverURL = when (val result = getServerUrl(sharedPreferences)) {
-            is Result.Success -> result.result
-            is Result.Failure -> return Result.Failure(result.error)
+        val serverURL = getServerUrl(sharedPreferences).getResultOr { error ->
+            return Result.Failure(error)
         }
 
         val username = sharedPreferences.getString(PREFERENCE_USERNAME, null)

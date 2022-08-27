@@ -5,7 +5,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class Transaction(
-    val id: Long,
+    var id: Long,
     @get:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val date: LocalDate,
     @get:JsonFormat(shape = JsonFormat.Shape.STRING)

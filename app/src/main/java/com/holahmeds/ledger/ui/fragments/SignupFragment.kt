@@ -11,6 +11,7 @@ import com.holahmeds.ledger.Error
 import com.holahmeds.ledger.R
 import com.holahmeds.ledger.Result
 import com.holahmeds.ledger.databinding.FragmentSignupBinding
+import com.holahmeds.ledger.getResultOr
 import com.holahmeds.ledger.server.*
 import com.holahmeds.ledger.ui.validation.TextMatchingValidation
 import com.holahmeds.ledger.ui.validation.TextNotEmptyValidation
@@ -50,19 +51,16 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
             val sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(requireContext())
 
-            val serverURL: URL = when (val result = getServerUrl(sharedPreferences)) {
-                is Result.Success -> result.result
-                is Result.Failure -> {
-                    when (result.error) {
-                        is Error.InvalidServerURL -> Toast.makeText(
-                            requireContext(),
-                            getString(R.string.error_server_url_format_invalid),
-                            Toast.LENGTH_LONG
-                        ).show()
-                        else -> {}
-                    }
-                    return@setOnClickListener
+            val serverURL: URL = getServerUrl(sharedPreferences).getResultOr { error ->
+                when (error) {
+                    is Error.InvalidServerURL -> Toast.makeText(
+                        requireContext(),
+                        getString(R.string.error_server_url_format_invalid),
+                        Toast.LENGTH_LONG
+                    ).show()
+                    else -> {}
                 }
+                return@setOnClickListener
             }
 
             val credentials = Credentials(

@@ -25,9 +25,8 @@ class LedgerViewModel @Inject constructor(
         onPreferencesChanged()
     }
 
-    @Throws(FetchTransactionException::class)
-    suspend fun getTransaction(transactionId: Long): Transaction =
-        transactionRepo?.getTransaction(transactionId) ?: throw FetchTransactionException("")
+    suspend fun getTransaction(transactionId: Long): Result<Transaction> =
+        transactionRepo?.getTransaction(transactionId) ?: Result.Failure(Error.Some(""))
 
     fun getTransactions(): LiveData<List<Transaction>> = transactionsInt
 

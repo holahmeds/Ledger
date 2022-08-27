@@ -12,12 +12,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
-import com.holahmeds.ledger.FetchTransactionException
 import com.holahmeds.ledger.LedgerViewModel
 import com.holahmeds.ledger.R
 import com.holahmeds.ledger.adapters.DateAdapter
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionEditorBinding
+import com.holahmeds.ledger.getResultOr
 import com.holahmeds.ledger.ui.hideKeyboard
 import com.holahmeds.ledger.ui.validation.RegexValidation
 import com.holahmeds.ledger.ui.validation.TextNotEmptyValidation
@@ -53,9 +53,7 @@ class TransactionEditor : Fragment() {
         val transactionID = TransactionEditorArgs.fromBundle(requireArguments()).transactionID
         if (transactionID != 0L) {
             viewLifecycleOwner.lifecycleScope.launch {
-                val transaction = try {
-                    viewModel.getTransaction(transactionID)
-                } catch (e: FetchTransactionException) {
+                val transaction = viewModel.getTransaction(transactionID).getResultOr {
                     Toast.makeText(context, "Unable to fetch transaction", Toast.LENGTH_LONG).show()
                     return@launch
                 }
