@@ -1,11 +1,11 @@
 package com.holahmeds.ledger.database.dao
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.MapInfo
 import androidx.room.Query
 import com.holahmeds.ledger.database.entities.TransactionTag
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TransactionTagDao {
@@ -14,7 +14,7 @@ interface TransactionTagDao {
 
     @MapInfo(keyColumn = "transactionId", valueColumn = "text")
     @Query("SELECT transactionId, text FROM tag INNER JOIN transactiontag ON tag.id=transactiontag.tagId")
-    fun getAll(): LiveData<Map<Long, List<String>>>
+    fun getAll(): Flow<Map<Long, List<String>>>
 
     @Insert
     suspend fun add(transactionTag: TransactionTag): Long

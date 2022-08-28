@@ -1,9 +1,15 @@
 package com.holahmeds.ledger
 
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -13,11 +19,11 @@ class LedgerViewModel @Inject constructor(
 ) : ViewModel() {
     private var transactionRepo: TransactionRepository? = null
 
-    private val transactionsInt: MediatorLiveData<List<Transaction>> = MediatorLiveData()
-    private val monthlyTotals: MediatorLiveData<List<TransactionTotals>> = MediatorLiveData()
-    private val tags: MediatorLiveData<List<String>> = MediatorLiveData()
-    private val categories: MediatorLiveData<List<String>> = MediatorLiveData()
-    private val transactees: MediatorLiveData<List<String>> = MediatorLiveData()
+    private val transactionsInt: FlowMediator<List<Transaction>> = FlowMediator(viewModelScope)
+    private val monthlyTotals: FlowMediator<List<TransactionTotals>> = FlowMediator(viewModelScope)
+    private val tags: FlowMediator<List<String>> = FlowMediator(viewModelScope)
+    private val categories: FlowMediator<List<String>> = FlowMediator(viewModelScope)
+    private val transactees: FlowMediator<List<String>> = FlowMediator(viewModelScope)
 
     private var error: MutableLiveData<Error> = MutableLiveData()
 
@@ -69,21 +75,21 @@ class LedgerViewModel @Inject constructor(
 
     private fun removeSources() {
         transactionRepo?.let {
-            transactionsInt.removeSource(it.getTransactions())
-            monthlyTotals.removeSource(it.getMonthlyTotals())
-            tags.removeSource(it.getAllTags())
-            categories.removeSource(it.getAllCategories())
-            transactees.removeSource(it.getAllTransactees())
+            transactionsInt.removeSource()
+            monthlyTotals.removeSource()
+            tags.removeSource()
+            categories.removeSource()
+            transactees.removeSource()
         }
     }
 
     private fun addSources() {
         transactionRepo?.let {
-            transactionsInt.addSource(it.getTransactions()) { l -> transactionsInt.value = l }
-            monthlyTotals.addSource(it.getMonthlyTotals()) { l -> monthlyTotals.value = l }
-            tags.addSource(it.getAllTags()) { l -> tags.value = l }
-            categories.addSource(it.getAllCategories()) { l -> categories.value = l }
-            transactees.addSource(it.getAllTransactees()) { l -> transactees.value = l }
+            transactionsInt.setSource(it.getTransactions())
+            monthlyTotals.setSource(it.getMonthlyTotals())
+            tags.setSource(it.getAllTags())
+            categories.setSource(it.getAllCategories())
+            transactees.setSource(it.getAllTransactees())
         }
     }
 
@@ -95,5 +101,54 @@ class LedgerViewModel @Inject constructor(
 
     private fun setError(error: Error) {
         this.error.value = error
+    }
+
+    class FlowMediator<T>(private val scope: CoroutineScope) : LiveData<T>() {
+        private var source: Flow<T>? = null
+        private var job: Job? = null
+
+        override fun onActive() {
+            synchronized(this) {
+                startCollecting()
+            }
+        }
+
+        override fun onInactive() {
+            synchronized(this) {
+                stopCollecting()
+            }
+        }
+
+        fun setSource(source: Flow<T>) {
+            synchronized(this) {
+                val isActive = stopCollecting()
+                this.source = source
+                if (isActive) {
+                    startCollecting()
+                }
+            }
+        }
+
+        fun removeSource() {
+            synchronized(this) {
+                stopCollecting()
+                this.source = null
+            }
+        }
+
+        private fun startCollecting() {
+            job = scope.launch {
+                source?.collect {
+                    value = it
+                }
+            }
+        }
+
+        private fun stopCollecting(): Boolean {
+            val isActive = job != null
+            job?.cancel()
+            job = null
+            return isActive
+        }
     }
 }

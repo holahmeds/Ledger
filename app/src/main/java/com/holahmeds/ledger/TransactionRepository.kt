@@ -1,13 +1,13 @@
 package com.holahmeds.ledger
 
-import androidx.lifecycle.LiveData
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
+import kotlinx.coroutines.flow.Flow
 
 interface TransactionRepository {
     suspend fun getTransaction(transactionId: Long): Result<Transaction>
 
-    fun getTransactions(): LiveData<List<Transaction>>
+    fun getTransactions(): Flow<List<Transaction>>
 
     /**
      * Used to insert/update transactions
@@ -21,11 +21,11 @@ interface TransactionRepository {
 
     suspend fun deleteTransaction(transactionId: Long)
 
-    fun getAllTags(): LiveData<List<String>>
+    fun getAllTags(): Flow<List<String>>
 
-    fun getAllCategories(): LiveData<List<String>>
+    fun getAllCategories(): Flow<List<String>>
 
-    fun getAllTransactees(): LiveData<List<String>>
+    fun getAllTransactees(): Flow<List<String>>
 
-    fun getMonthlyTotals(): LiveData<List<TransactionTotals>>
+    fun getMonthlyTotals(): Flow<List<TransactionTotals>>
 }

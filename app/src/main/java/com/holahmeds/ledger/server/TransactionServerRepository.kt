@@ -1,9 +1,6 @@
 package com.holahmeds.ledger.server
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.holahmeds.ledger.Error
 import com.holahmeds.ledger.Result
@@ -27,6 +24,9 @@ import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpMethod.Companion.Put
 import io.ktor.serialization.jackson.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 import java.net.ConnectException
 import java.net.URL
@@ -75,17 +75,15 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
         expectSuccess = true
     }
 
-    private val transactions: MutableLiveData<List<Transaction>> =
-        MutableLiveData<List<Transaction>>()
+    private val transactions: MutableStateFlow<List<Transaction>> = MutableStateFlow(emptyList())
 
-    private val monthlyTotal: LiveData<List<TransactionTotals>> =
-        Transformations.map(transactions) { transactions ->
-            extractMonthlyTotals(transactions)
-        }
+    private val monthlyTotal: Flow<List<TransactionTotals>> = transactions.map { transactions ->
+        extractMonthlyTotals(transactions)
+    }
 
-    private val tags: MutableLiveData<List<String>> = MutableLiveData()
-    private val categories: MutableLiveData<List<String>> = MutableLiveData()
-    private val transactees: MutableLiveData<List<String>> = MutableLiveData()
+    private val tags: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
+    private val categories: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
+    private val transactees: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -103,7 +101,7 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
         }
     }
 
-    override fun getTransactions(): LiveData<List<Transaction>> {
+    override fun getTransactions(): Flow<List<Transaction>> {
         scope.launch {
             fetchTransactions()
         }
@@ -151,28 +149,28 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
         }
     }
 
-    override fun getAllTags(): LiveData<List<String>> {
+    override fun getAllTags(): Flow<List<String>> {
         scope.launch {
             fetchTags()
         }
         return tags
     }
 
-    override fun getAllCategories(): LiveData<List<String>> {
+    override fun getAllCategories(): Flow<List<String>> {
         scope.launch {
             fetchCategories()
         }
         return categories
     }
 
-    override fun getAllTransactees(): LiveData<List<String>> {
+    override fun getAllTransactees(): Flow<List<String>> {
         scope.launch {
             fetchTransactees()
         }
         return transactees
     }
 
-    override fun getMonthlyTotals(): LiveData<List<TransactionTotals>> {
+    override fun getMonthlyTotals(): Flow<List<TransactionTotals>> {
         scope.launch {
             fetchTransactees()
         }
@@ -203,7 +201,7 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
     private suspend fun fetchTransactions() {
         try {
             val transactions: List<Transaction> = request(Get, "transactions").body()
-            this.transactions.postValue(transactions)
+            this.transactions.value = transactions
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed fetch transactions", e)
         } catch (e: ResponseException) {
@@ -214,7 +212,7 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
     private suspend fun fetchTags() {
         try {
             val tags: List<String> = request(Get, "transactions/tags").body()
-            this.tags.postValue(tags)
+            this.tags.value = tags
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to fetch tags", e)
         } catch (e: ResponseException) {
@@ -225,7 +223,7 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
     private suspend fun fetchCategories() {
         try {
             val categories: List<String> = request(Get, "transactions/categories").body()
-            this.categories.postValue(categories)
+            this.categories.value = categories
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to fetch categories", e)
         } catch (e: ResponseException) {
@@ -236,7 +234,7 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
     private suspend fun fetchTransactees() {
         try {
             val transactees: List<String> = request(Get, "transactions/transactees").body()
-            this.transactees.postValue(transactees)
+            this.transactees.value = transactees
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to fetch transactees", e)
         } catch (e: ResponseException) {
