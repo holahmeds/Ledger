@@ -45,6 +45,12 @@ class LedgerViewModel @Inject constructor(
         }
     }
 
+    fun insertAll(transactions: List<NewTransaction>) {
+        viewModelScope.launch {
+            transactionRepo?.insertAll(transactions)
+        }
+    }
+
     fun updateTransaction(transaction: Transaction) {
         viewModelScope.launch {
             transactionRepo?.updateTransaction(transaction)

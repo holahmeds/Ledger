@@ -9,6 +9,7 @@ import com.holahmeds.ledger.data.TransactionTotals
 import com.holahmeds.ledger.database.entities.Tag
 import com.holahmeds.ledger.database.entities.TransactionEntity
 import com.holahmeds.ledger.database.entities.TransactionTag
+import com.holahmeds.ledger.getResultOr
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -89,6 +90,15 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
 
             Result.Success(transactionId)
         }
+
+    override suspend fun insertAll(transactions: List<NewTransaction>): Result<Unit> {
+        for (transaction in transactions) {
+            insertTransaction(transaction).getResultOr {
+                return Result.Failure(it)
+            }
+        }
+        return Result.Success(Unit)
+    }
 
     override suspend fun updateTransaction(transaction: Transaction): Result<Unit> =
         coroutineScope {

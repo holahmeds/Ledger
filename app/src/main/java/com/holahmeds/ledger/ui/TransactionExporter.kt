@@ -8,9 +8,13 @@ import androidx.activity.result.ActivityResultRegistry
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.holahmeds.ledger.LedgerViewModel
 import com.holahmeds.ledger.TransactionSerializer
 import com.holahmeds.ledger.data.NewTransaction
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class TransactionExporter(
     private val context: Context,
@@ -38,26 +42,24 @@ class TransactionExporter(
                 Log.e("TransactionExporter", "Content Provider crashed")
                 return@register
             }
-            val json = inputStream.reader().use {
-                it.readText()
-            }
+            owner.lifecycleScope.launch(Dispatchers.IO) {
+                val json = inputStream.reader().use {
+                    it.readText()
+                }
 
-            val transactionSerializer = TransactionSerializer()
-            val transactionList = transactionSerializer.deserializeList(json)
+                val transactionSerializer = TransactionSerializer()
+                val transactionList = transactionSerializer.deserializeList(json).map { t ->
+                    NewTransaction(t.date, t.amount, t.category, t.transactee, t.note, t.tags)
+                }
+                viewModel.insertAll(transactionList)
 
-            Toast.makeText(context, "Found ${transactionList.size} transactions", Toast.LENGTH_LONG)
-                .show()
-
-            for (transaction in transactionList) {
-                val newTransaction = NewTransaction(
-                    transaction.date,
-                    transaction.amount,
-                    transaction.category,
-                    transaction.transactee,
-                    transaction.note,
-                    transaction.tags
-                )
-                viewModel.insertTransaction(newTransaction)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        context,
+                        "Found ${transactionList.size} transactions",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
 
@@ -82,19 +84,27 @@ class TransactionExporter(
                 Log.e("TransactionExporter", "Content Provider crashed")
                 return@register
             }
-            outputStream.writer().use {
-                val transactionSerializer = TransactionSerializer()
-                it.write(transactionSerializer.serializeList(transactions, true))
-            }
 
-            Toast.makeText(context, "Exported ${transactions.size} transactions", Toast.LENGTH_LONG)
-                .show()
-            Log.i("TransactionExporter", "Exported ${transactions.size} transactions to $uri")
+            owner.lifecycleScope.launch(Dispatchers.IO) {
+                outputStream.writer().use {
+                    val transactionSerializer = TransactionSerializer()
+                    it.write(transactionSerializer.serializeList(transactions, true))
+                }
+
+                Log.i("TransactionExporter", "Exported ${transactions.size} transactions to $uri")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        context,
+                        "Exported ${transactions.size} transactions",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
         }
     }
 
     fun import() {
-        importTransactions.launch(arrayOf("application/json"))
+        importTransactions.launch(arrayOf("application/*"))
     }
 
     fun export() {

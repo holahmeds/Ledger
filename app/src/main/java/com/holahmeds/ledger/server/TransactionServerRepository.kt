@@ -127,6 +127,24 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
         return Result.Success(returnedTransaction.id)
     }
 
+    override suspend fun insertAll(transactions: List<NewTransaction>): Result<Unit> {
+        for (transaction in transactions) {
+            try {
+                request(Post, "transactions", transaction)
+            } catch (e: ConnectException) {
+                Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to update transaction", e)
+                return Result.Failure(Error.ConnectionError)
+            } catch (e: ResponseException) {
+                Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to update transaction", e)
+                return Result.Failure(Error.ConnectionError)
+            }
+        }
+        scope.launch {
+            fetchTransactions()
+        }
+        return Result.Success(Unit)
+    }
+
     /**
      * Used to update transactions
      */
