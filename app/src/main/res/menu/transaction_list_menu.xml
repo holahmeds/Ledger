@@ -4,6 +4,9 @@
         android:id="@+id/export"
         android:title="@string/export_to_file" />
     <item
+        android:id="@+id/import_transactions"
+        android:title="@string/import_from_files" />
+    <item
         android:id="@+id/chart"
         android:title="@string/statistics" />
     <item

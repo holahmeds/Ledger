@@ -1,10 +1,7 @@
 package com.holahmeds.ledger.ui.fragments
 
 import android.os.Bundle
-import android.os.Environment
-import android.util.Log
 import android.view.*
-import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -18,15 +15,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.holahmeds.ledger.Error
 import com.holahmeds.ledger.LedgerViewModel
 import com.holahmeds.ledger.R
-import com.holahmeds.ledger.TransactionSerializer
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionListBinding
 import com.holahmeds.ledger.ui.TransactionAdapter
-import java.io.File
+import com.holahmeds.ledger.ui.TransactionExporter
 
 class TransactionList : Fragment() {
     private val viewModel: LedgerViewModel by activityViewModels()
     private var transactions: List<Transaction> = emptyList()
+
+    lateinit var transactionExporter: TransactionExporter
 
     private val menuProvider = object : MenuProvider {
         override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -36,7 +34,11 @@ class TransactionList : Fragment() {
         override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
             when (menuItem.itemId) {
                 R.id.export -> {
-                    exportToFile()
+                    transactionExporter.export()
+                    return true
+                }
+                R.id.import_transactions -> {
+                    transactionExporter.import()
                     return true
                 }
                 R.id.chart -> {
@@ -122,20 +124,14 @@ class TransactionList : Fragment() {
             navController.navigate(R.id.transactionEditor)
         }
 
+        transactionExporter = TransactionExporter(
+            requireContext(),
+            requireActivity().activityResultRegistry,
+            viewModel
+        )
+        lifecycle.addObserver(transactionExporter)
+
         return binding.root
     }
 
-    private fun exportToFile() {
-        val file = File(
-            requireContext().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
-            "transactions.json"
-        )
-
-        val transactionSerializer = TransactionSerializer()
-
-        file.writeText(transactionSerializer.serializeList(transactions, true))
-
-        Toast.makeText(context, "Exported to $file", Toast.LENGTH_LONG).show()
-        Log.i("TransactionList", "Exported data to $file")
-    }
 }
