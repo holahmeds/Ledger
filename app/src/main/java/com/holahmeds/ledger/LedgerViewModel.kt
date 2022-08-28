@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,6 +38,12 @@ class LedgerViewModel @Inject constructor(
     fun getTransactions(): LiveData<List<Transaction>> = transactionsInt
 
     fun getMonthlyTotals() = monthlyTotals
+
+    fun insertTransaction(newTransaction: NewTransaction) {
+        viewModelScope.launch {
+            transactionRepo?.insertTransaction(newTransaction)
+        }
+    }
 
     fun updateTransaction(transaction: Transaction) {
         viewModelScope.launch {

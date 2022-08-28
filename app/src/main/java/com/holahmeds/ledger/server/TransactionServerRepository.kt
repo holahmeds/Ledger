@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.holahmeds.ledger.Error
 import com.holahmeds.ledger.Result
 import com.holahmeds.ledger.TransactionRepository
+import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 import io.ktor.client.*
@@ -108,19 +109,9 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
         return transactions
     }
 
-    /**
-     * Used to insert/update transactions
-     *
-     * If transaction.id == 0, then inserts the transaction. If transaction.id != 0, updates the
-     * transaction with that ID
-     */
-    override suspend fun updateTransaction(transaction: Transaction): Result<Long> {
+    override suspend fun insertTransaction(newTransaction: NewTransaction): Result<Long> {
         val response = try {
-            if (transaction.id == 0L) {
-                request(Post, "transactions", transaction)
-            } else {
-                request(Put, "transactions/${transaction.id}", transaction)
-            }
+            request(Post, "transactions", newTransaction)
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to update transaction", e)
             return Result.Failure(Error.ConnectionError)
@@ -134,6 +125,29 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
 
         val returnedTransaction = response.body<Transaction>()
         return Result.Success(returnedTransaction.id)
+    }
+
+    /**
+     * Used to update transactions
+     */
+    override suspend fun updateTransaction(transaction: Transaction): Result<Unit> {
+        try {
+            request(Put, "transactions/${transaction.id}", transaction)
+        } catch (e: ConnectException) {
+            Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to update transaction", e)
+            return Result.Failure(Error.ConnectionError)
+        } catch (e: ResponseException) {
+            if (e.response.status == HttpStatusCode.NotFound) {
+                return Result.Failure(Error.TransactionNotFoundError)
+            }
+            Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to update transaction", e)
+            return Result.Failure(Error.ConnectionError)
+        }
+        scope.launch {
+            fetchTransactions()
+        }
+
+        return Result.Success(Unit)
     }
 
     override suspend fun deleteTransaction(transactionId: Long) {
@@ -252,7 +266,11 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
             }
         }
 
-    private suspend fun request(method: HttpMethod, path: String, body: Transaction): HttpResponse =
+    private suspend inline fun <reified T> request(
+        method: HttpMethod,
+        path: String,
+        body: T
+    ): HttpResponse =
         withContext(Dispatchers.IO) {
             client.request(serverURL) {
                 this.method = method

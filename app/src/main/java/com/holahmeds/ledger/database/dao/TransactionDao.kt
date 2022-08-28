@@ -2,8 +2,8 @@ package com.holahmeds.ledger.database.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.holahmeds.ledger.database.entities.TransactionEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -21,8 +21,11 @@ interface TransactionDao {
     @Query("SELECT DISTINCT transactee FROM transaction_table WHERE transactee IS NOT NULL")
     fun getAllTransactees(): Flow<List<String>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert
     suspend fun add(transaction: TransactionEntity): Long
+
+    @Update
+    suspend fun update(transaction: TransactionEntity): Int
 
     @Query("DELETE FROM transaction_table WHERE id=:transactionId")
     suspend fun delete(transactionId: Long)

@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.holahmeds.ledger.Error
 import com.holahmeds.ledger.Result
+import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 import com.holahmeds.ledger.getResultOr
@@ -37,8 +38,7 @@ class TransactionDatabaseRepositoryTest {
 
     @Test
     fun testInsert() = runTest {
-        val transaction = Transaction(
-            0,
+        val newTransaction = NewTransaction(
             LocalDate.now(),
             BigDecimal("132.00"),
             "test",
@@ -46,20 +46,29 @@ class TransactionDatabaseRepositoryTest {
             null,
             emptyList()
         )
-        val result = databaseRepository.updateTransaction(transaction)
-        if (result is Result.Success) {
-            transaction.id = result.result
-        } else {
+        val transactionId = databaseRepository.insertTransaction(newTransaction).getResultOr {
             fail("Failed to insert transaction")
+            return@runTest
         }
 
-        assertEquals(Result.Success(transaction), databaseRepository.getTransaction(transaction.id))
+        assertEquals(
+            Result.Success(
+                Transaction(
+                    transactionId,
+                    newTransaction.date,
+                    newTransaction.amount,
+                    newTransaction.category,
+                    newTransaction.transactee,
+                    newTransaction.note,
+                    newTransaction.tags
+                )
+            ), databaseRepository.getTransaction(transactionId)
+        )
     }
 
     @Test
     fun testUpdate() = runTest {
-        val transaction = Transaction(
-            0,
+        val newTransaction = NewTransaction(
             LocalDate.now(),
             BigDecimal("468.00"),
             "test",
@@ -67,7 +76,7 @@ class TransactionDatabaseRepositoryTest {
             null,
             emptyList()
         )
-        val transactionId = databaseRepository.updateTransaction(transaction).getResultOr {
+        val transactionId = databaseRepository.insertTransaction(newTransaction).getResultOr {
             fail("Failed to insert transaction")
             return@runTest
         }
@@ -89,9 +98,24 @@ class TransactionDatabaseRepositoryTest {
     }
 
     @Test
-    fun testDelete() = runTest {
+    fun testUpdateNonExistentTransaction() = runTest {
         val transaction = Transaction(
-            0,
+            5,
+            LocalDate.now(),
+            BigDecimal("480.00"),
+            "test",
+            "Bob",
+            null,
+            listOf("tag1")
+        )
+        val result = databaseRepository.updateTransaction(transaction)
+
+        assertEquals(Result.Failure(Error.TransactionNotFoundError), result)
+    }
+
+    @Test
+    fun testDelete() = runTest {
+        val newTransaction = NewTransaction(
             LocalDate.now(),
             BigDecimal("468.00"),
             "test",
@@ -99,7 +123,7 @@ class TransactionDatabaseRepositoryTest {
             null,
             emptyList()
         )
-        val transactionId = databaseRepository.updateTransaction(transaction).getResultOr {
+        val transactionId = databaseRepository.insertTransaction(newTransaction).getResultOr {
             fail("Failed to insert transaction")
             return@runTest
         }
@@ -113,9 +137,8 @@ class TransactionDatabaseRepositoryTest {
 
     @Test
     fun testGetAllTags() = runTest {
-        databaseRepository.updateTransaction(
-            Transaction(
-                0,
+        databaseRepository.insertTransaction(
+            NewTransaction(
                 LocalDate.now(),
                 BigDecimal("468.00"),
                 "test",
@@ -126,9 +149,8 @@ class TransactionDatabaseRepositoryTest {
         )
         assertEquals(listOf("tag1"), databaseRepository.getAllTags().first())
 
-        databaseRepository.updateTransaction(
-            Transaction(
-                0,
+        databaseRepository.insertTransaction(
+            NewTransaction(
                 LocalDate.now(),
                 BigDecimal("468.00"),
                 "test",
@@ -142,9 +164,8 @@ class TransactionDatabaseRepositoryTest {
 
     @Test
     fun testGetAllCategories() = runTest {
-        databaseRepository.updateTransaction(
-            Transaction(
-                0,
+        databaseRepository.insertTransaction(
+            NewTransaction(
                 LocalDate.now(),
                 BigDecimal("468.00"),
                 "test",
@@ -158,9 +179,8 @@ class TransactionDatabaseRepositoryTest {
 
     @Test
     fun testGetAllTransactees() = runTest {
-        databaseRepository.updateTransaction(
-            Transaction(
-                0,
+        databaseRepository.insertTransaction(
+            NewTransaction(
                 LocalDate.now(),
                 BigDecimal("468.00"),
                 "test",
@@ -175,8 +195,7 @@ class TransactionDatabaseRepositoryTest {
     @Test
     fun testGetMonthlyTotals() = runTest {
         val transactions = listOf(
-            Transaction(
-                0,
+            NewTransaction(
                 LocalDate.of(2022, 8, 28),
                 BigDecimal("123"),
                 "test",
@@ -184,8 +203,7 @@ class TransactionDatabaseRepositoryTest {
                 null,
                 emptyList()
             ),
-            Transaction(
-                0,
+            NewTransaction(
                 LocalDate.of(2022, 8, 27),
                 BigDecimal("321"),
                 "test",
@@ -193,8 +211,7 @@ class TransactionDatabaseRepositoryTest {
                 null,
                 emptyList()
             ),
-            Transaction(
-                0,
+            NewTransaction(
                 LocalDate.of(2022, 7, 28),
                 BigDecimal("123"),
                 "test",
@@ -204,7 +221,7 @@ class TransactionDatabaseRepositoryTest {
             )
         )
         for (transaction in transactions) {
-            databaseRepository.updateTransaction(transaction)
+            databaseRepository.insertTransaction(transaction)
         }
         assertEquals(
             listOf(

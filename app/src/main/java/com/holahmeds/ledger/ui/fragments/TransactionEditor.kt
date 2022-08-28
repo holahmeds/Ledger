@@ -15,6 +15,7 @@ import androidx.navigation.fragment.NavHostFragment
 import com.holahmeds.ledger.LedgerViewModel
 import com.holahmeds.ledger.R
 import com.holahmeds.ledger.adapters.DateAdapter
+import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionEditorBinding
 import com.holahmeds.ledger.getResultOr
@@ -163,9 +164,14 @@ class TransactionEditor : Fragment() {
                 view.chipValues
             }
 
-            val newTransaction =
-                Transaction(transactionID, date, amount, category, transactee, note, tags)
-            viewModel.updateTransaction(newTransaction)
+            if (transactionID == 0L) {
+                val newTransaction = NewTransaction(date, amount, category, transactee, note, tags)
+                viewModel.insertTransaction(newTransaction)
+            } else {
+                val updatedTransaction =
+                    Transaction(transactionID, date, amount, category, transactee, note, tags)
+                viewModel.updateTransaction(updatedTransaction)
+            }
 
             hideKeyboard(requireActivity())
             NavHostFragment.findNavController(this).popBackStack()

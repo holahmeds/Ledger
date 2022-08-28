@@ -3,6 +3,7 @@ package com.holahmeds.ledger.database
 import com.holahmeds.ledger.Error
 import com.holahmeds.ledger.Result
 import com.holahmeds.ledger.TransactionRepository
+import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 import com.holahmeds.ledger.database.entities.Tag
@@ -70,13 +71,35 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
 
     override fun getTransactions(): Flow<List<Transaction>> = transactions
 
-    override suspend fun updateTransaction(transaction: Transaction): Result<Long> =
+    override suspend fun insertTransaction(newTransaction: NewTransaction): Result<Long> =
         coroutineScope {
             val transactionDao = database.transactionDao()
             val tagDao = database.tagDao()
             val transactionTagDao = database.transactionTagDao()
 
-            val transactionId = transactionDao.add(TransactionEntity(transaction))
+            val transactionId = transactionDao.add(TransactionEntity(newTransaction))
+
+            for (t in newTransaction.tags) {
+                var tagId = tagDao.getTagId(t)
+                if (tagId == null) {
+                    tagId = tagDao.add(Tag(0, t))
+                }
+                transactionTagDao.add(TransactionTag(transactionId, tagId))
+            }
+
+            Result.Success(transactionId)
+        }
+
+    override suspend fun updateTransaction(transaction: Transaction): Result<Unit> =
+        coroutineScope {
+            val transactionDao = database.transactionDao()
+            val tagDao = database.tagDao()
+            val transactionTagDao = database.transactionTagDao()
+
+            val rowsUpdated = transactionDao.update(TransactionEntity(transaction))
+            if (rowsUpdated == 0) {
+                return@coroutineScope Result.Failure(Error.TransactionNotFoundError)
+            }
 
             val oldTags = transactionTagDao.getTagsForTransaction(transaction.id)
 
@@ -100,11 +123,11 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
                     if (tagId == null) {
                         tagId = tagDao.add(Tag(0, t))
                     }
-                    transactionTagDao.add(TransactionTag(transactionId, tagId))
+                    transactionTagDao.add(TransactionTag(transaction.id, tagId))
                 }
             }
 
-            Result.Success(transactionId)
+            Result.Success(Unit)
         }
 
     override suspend fun deleteTransaction(transactionId: Long) {

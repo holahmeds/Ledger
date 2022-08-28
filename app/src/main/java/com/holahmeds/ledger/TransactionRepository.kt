@@ -1,5 +1,6 @@
 package com.holahmeds.ledger
 
+import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 import kotlinx.coroutines.flow.Flow
@@ -9,15 +10,12 @@ interface TransactionRepository {
 
     fun getTransactions(): Flow<List<Transaction>>
 
+    suspend fun insertTransaction(newTransaction: NewTransaction): Result<Long>
+
     /**
-     * Used to insert/update transactions
-     *
-     * If transaction.id == 0, then inserts the transaction. If transaction.id != 0, updates the
-     * transaction with that ID
-     *
-     * @return the transaction ID
+     * Used to update transactions
      */
-    suspend fun updateTransaction(transaction: Transaction): Result<Long>
+    suspend fun updateTransaction(transaction: Transaction): Result<Unit>
 
     suspend fun deleteTransaction(transactionId: Long)
 
