@@ -103,6 +103,13 @@ class TransactionList : Fragment() {
             }
         }
 
+        viewModel.isJobInProgress().observe(viewLifecycleOwner) { isInProgress ->
+            binding.progressBar.visibility = when (isInProgress) {
+                true -> View.VISIBLE
+                else -> View.INVISIBLE
+            }
+        }
+
         // Set the adapter
         with(binding.transactionList) {
             layoutManager = LinearLayoutManager(context)

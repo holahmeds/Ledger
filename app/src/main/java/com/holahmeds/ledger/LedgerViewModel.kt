@@ -10,8 +10,11 @@ import com.holahmeds.ledger.data.TransactionTotals
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,39 +31,52 @@ class LedgerViewModel @Inject constructor(
 
     private var error: MutableLiveData<Error> = MutableLiveData()
 
+    private val progressTrackingLock: Lock = ReentrantLock()
+    private var inProgressJobs = 0
+    private val isJobInProgress: MutableLiveData<Boolean> = MutableLiveData()
+
     init {
         onPreferencesChanged()
     }
 
-    suspend fun getTransaction(transactionId: Long): Result<Transaction> =
-        transactionRepo?.getTransaction(transactionId) ?: Result.Failure(Error.Some(""))
+    suspend fun getTransaction(transactionId: Long): Result<Transaction> {
+        val job = viewModelScope.async {
+            transactionRepo?.getTransaction(transactionId) ?: Result.Failure(Error.Some(""))
+        }
+        addJobInProgress(job)
+        return job.await()
+    }
 
     fun getTransactions(): LiveData<List<Transaction>> = transactionsInt
 
     fun getMonthlyTotals() = monthlyTotals
 
     fun insertTransaction(newTransaction: NewTransaction) {
-        viewModelScope.launch {
+        val job = viewModelScope.launch {
             transactionRepo?.insertTransaction(newTransaction)
         }
+        addJobInProgress(job)
     }
 
     fun insertAll(transactions: List<NewTransaction>) {
-        viewModelScope.launch {
+        val job = viewModelScope.launch {
             transactionRepo?.insertAll(transactions)
         }
+        addJobInProgress(job)
     }
 
     fun updateTransaction(transaction: Transaction) {
-        viewModelScope.launch {
+        val job = viewModelScope.launch {
             transactionRepo?.updateTransaction(transaction)
         }
+        addJobInProgress(job)
     }
 
     fun deleteTransaction(transactionId: Long) {
-        viewModelScope.launch {
+        val job = viewModelScope.launch {
             transactionRepo?.deleteTransaction(transactionId)
         }
+        addJobInProgress(job)
     }
 
     fun getAllTags(): LiveData<List<String>> = tags
@@ -72,7 +88,7 @@ class LedgerViewModel @Inject constructor(
     fun getError(): LiveData<Error> = error
 
     fun onPreferencesChanged() {
-        viewModelScope.launch {
+        val job = viewModelScope.launch {
             when (val res = transactionRepoFactory.createRepo()) {
                 is Result.Success<TransactionRepository> -> {
                     setError(Error.None)
@@ -84,7 +100,10 @@ class LedgerViewModel @Inject constructor(
                 }
             }
         }
+        addJobInProgress(job)
     }
+
+    fun isJobInProgress() = isJobInProgress
 
     private fun removeSources() {
         transactionRepo?.let {
@@ -114,6 +133,29 @@ class LedgerViewModel @Inject constructor(
 
     private fun setError(error: Error) {
         this.error.value = error
+    }
+
+    private fun addJobInProgress(job: Job) {
+        progressTrackingLock.lock()
+        try {
+            inProgressJobs++
+            if (inProgressJobs == 1) {
+                isJobInProgress.value = true
+            }
+        } finally {
+            progressTrackingLock.unlock()
+        }
+        job.invokeOnCompletion {
+            progressTrackingLock.lock()
+            try {
+                inProgressJobs--
+                if (inProgressJobs == 0) {
+                    isJobInProgress.value = false
+                }
+            } finally {
+                progressTrackingLock.unlock()
+            }
+        }
     }
 
     class FlowMediator<T>(private val scope: CoroutineScope) : LiveData<T>() {

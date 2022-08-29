@@ -42,9 +42,11 @@ class TransactionExporter(
                 Log.e("TransactionExporter", "Content Provider crashed")
                 return@register
             }
-            owner.lifecycleScope.launch(Dispatchers.IO) {
-                val json = inputStream.reader().use {
-                    it.readText()
+            owner.lifecycleScope.launch {
+                val json = withContext(Dispatchers.IO) {
+                    inputStream.reader().use {
+                        it.readText()
+                    }
                 }
 
                 val transactionSerializer = TransactionSerializer()
@@ -53,13 +55,11 @@ class TransactionExporter(
                 }
                 viewModel.insertAll(transactionList)
 
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        context,
-                        "Found ${transactionList.size} transactions",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                Toast.makeText(
+                    context,
+                    "Found ${transactionList.size} transactions",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
 
@@ -67,7 +67,8 @@ class TransactionExporter(
             "export_transactions",
             owner,
             ActivityResultContracts.CreateDocument("application/json")
-        ) { uri ->
+        )
+        { uri ->
             if (uri == null) {
                 // no file selected
                 return@register
@@ -85,20 +86,20 @@ class TransactionExporter(
                 return@register
             }
 
-            owner.lifecycleScope.launch(Dispatchers.IO) {
-                outputStream.writer().use {
-                    val transactionSerializer = TransactionSerializer()
-                    it.write(transactionSerializer.serializeList(transactions, true))
+            owner.lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    outputStream.writer().use {
+                        val transactionSerializer = TransactionSerializer()
+                        it.write(transactionSerializer.serializeList(transactions, true))
+                    }
                 }
 
                 Log.i("TransactionExporter", "Exported ${transactions.size} transactions to $uri")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        context,
-                        "Exported ${transactions.size} transactions",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                Toast.makeText(
+                    context,
+                    "Exported ${transactions.size} transactions",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
