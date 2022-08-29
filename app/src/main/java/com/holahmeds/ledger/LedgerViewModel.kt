@@ -161,22 +161,25 @@ class LedgerViewModel @Inject constructor(
     class FlowMediator<T>(private val scope: CoroutineScope) : LiveData<T>() {
         private var source: Flow<T>? = null
         private var job: Job? = null
+        private var isActive = false
 
         override fun onActive() {
             synchronized(this) {
                 startCollecting()
+                isActive = true
             }
         }
 
         override fun onInactive() {
             synchronized(this) {
                 stopCollecting()
+                isActive = false
             }
         }
 
         fun setSource(source: Flow<T>) {
             synchronized(this) {
-                val isActive = stopCollecting()
+                stopCollecting()
                 this.source = source
                 if (isActive) {
                     startCollecting()
@@ -199,11 +202,9 @@ class LedgerViewModel @Inject constructor(
             }
         }
 
-        private fun stopCollecting(): Boolean {
-            val isActive = job != null
+        private fun stopCollecting() {
             job?.cancel()
             job = null
-            return isActive
         }
     }
 }
