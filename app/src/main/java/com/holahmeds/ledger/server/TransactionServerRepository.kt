@@ -2,9 +2,7 @@ package com.holahmeds.ledger.server
 
 import android.util.Log
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.holahmeds.ledger.Error
-import com.holahmeds.ledger.Result
-import com.holahmeds.ledger.TransactionRepository
+import com.holahmeds.ledger.*
 import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
@@ -33,11 +31,16 @@ import java.net.ConnectException
 import java.net.URL
 import java.time.YearMonth
 
-class TransactionServerRepository(private val serverURL: URL, authToken: String) :
+class TransactionServerRepository(
+    private val jobProgressTracker: JobProgressTracker,
+    private val serverURL: URL,
+    authToken: String
+) :
     TransactionRepository, AutoCloseable {
     companion object {
         const val TRANSACTION_SERVER_REPOSITORY = "TransactionServerRepository"
         suspend fun create(
+            jobProgressTracker: JobProgressTracker,
             serverURL: URL,
             credentials: Credentials
         ): Result<TransactionServerRepository> {
@@ -46,7 +49,13 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
                     Result.Failure(tokenResult.error)
                 }
                 is Result.Success -> {
-                    Result.Success(TransactionServerRepository(serverURL, tokenResult.result))
+                    Result.Success(
+                        TransactionServerRepository(
+                            jobProgressTracker,
+                            serverURL,
+                            tokenResult.result
+                        )
+                    )
                 }
             }
         }
@@ -105,7 +114,7 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
     override fun getTransactions(): Flow<List<Transaction>> {
         scope.launch {
             fetchTransactions()
-        }
+        }.addToTracker(jobProgressTracker)
         return transactions
     }
 
@@ -121,7 +130,7 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
         }
         scope.launch {
             fetchTransactions()
-        }
+        }.addToTracker(jobProgressTracker)
 
         val returnedTransaction = response.body<Transaction>()
         return Result.Success(returnedTransaction.id)
@@ -141,7 +150,7 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
         }
         scope.launch {
             fetchTransactions()
-        }
+        }.addToTracker(jobProgressTracker)
         return Result.Success(Unit)
     }
 
@@ -163,7 +172,7 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
         }
         scope.launch {
             fetchTransactions()
-        }
+        }.addToTracker(jobProgressTracker)
 
         return Result.Success(Unit)
     }
@@ -178,7 +187,7 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
         }
         scope.launch {
             fetchTransactions()
-        }
+        }.addToTracker(jobProgressTracker)
     }
 
     override fun getAllTags(): Flow<List<String>> {
@@ -204,8 +213,8 @@ class TransactionServerRepository(private val serverURL: URL, authToken: String)
 
     override fun getMonthlyTotals(): Flow<List<TransactionTotals>> {
         scope.launch {
-            fetchTransactees()
-        }
+            fetchTransactions()
+        }.addToTracker(jobProgressTracker)
         return monthlyTotal
     }
 

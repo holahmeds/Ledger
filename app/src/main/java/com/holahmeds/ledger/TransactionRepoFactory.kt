@@ -10,7 +10,8 @@ import javax.inject.Provider
 
 class TransactionRepoFactory @Inject constructor(
     @ApplicationContext private val appContext: Context,
-    private val databaseRepoProvider: Provider<TransactionDatabaseRepository>
+    private val databaseRepoProvider: Provider<TransactionDatabaseRepository>,
+    private val jobProgressTracker: JobProgressTracker,
 ) {
     suspend fun createRepo(): Result<TransactionRepository> {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(appContext)
@@ -29,6 +30,6 @@ class TransactionRepoFactory @Inject constructor(
             ?: return Result.Failure(Error.PasswordNotSet)
         val credentials = Credentials(username, password)
 
-        return TransactionServerRepository.create(serverURL, credentials)
+        return TransactionServerRepository.create(jobProgressTracker, serverURL, credentials)
     }
 }
