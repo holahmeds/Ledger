@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.*
 import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
@@ -15,6 +16,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+const val TRANSACTIONS_PAGE_SIZE = 10
+
 @HiltViewModel
 class LedgerViewModel @Inject constructor(
     private val transactionRepoFactory: TransactionRepoFactory,
@@ -23,6 +26,10 @@ class LedgerViewModel @Inject constructor(
     private var transactionRepo: TransactionRepository? = null
 
     private val transactionsInt: FlowMediator<List<Transaction>> = FlowMediator(viewModelScope)
+    private var transactionSource: PagingSource<Int, Transaction>? = null
+    private val transactionPages: FlowMediator<PagingData<Transaction>> =
+        FlowMediator(viewModelScope)
+
     private val monthlyTotals: FlowMediator<List<TransactionTotals>> = FlowMediator(viewModelScope)
     private val tags: FlowMediator<List<String>> = FlowMediator(viewModelScope)
     private val categories: FlowMediator<List<String>> = FlowMediator(viewModelScope)
@@ -47,29 +54,35 @@ class LedgerViewModel @Inject constructor(
 
     fun getTransactions(): LiveData<List<Transaction>> = transactionsInt
 
+    fun getTransactionPages() = transactionPages
+
     fun getMonthlyTotals() = monthlyTotals
 
     fun insertTransaction(newTransaction: NewTransaction) {
         viewModelScope.launch {
             transactionRepo?.insertTransaction(newTransaction)
+            transactionSource?.invalidate()
         }.addToTracker(jobProgressTracker)
     }
 
     fun insertAll(transactions: List<NewTransaction>) {
         viewModelScope.launch {
             transactionRepo?.insertAll(transactions)
+            transactionSource?.invalidate()
         }.addToTracker(jobProgressTracker)
     }
 
     fun updateTransaction(transaction: Transaction) {
         viewModelScope.launch {
             transactionRepo?.updateTransaction(transaction)
+            transactionSource?.invalidate()
         }.addToTracker(jobProgressTracker)
     }
 
     fun deleteTransaction(transactionId: Long) {
         viewModelScope.launch {
             transactionRepo?.deleteTransaction(transactionId)
+            transactionSource?.invalidate()
         }.addToTracker(jobProgressTracker)
     }
 
@@ -101,6 +114,9 @@ class LedgerViewModel @Inject constructor(
     private fun removeSources() {
         transactionRepo?.let {
             transactionsInt.removeSource()
+            transactionSource = null
+            transactionPages.removeSource()
+
             monthlyTotals.removeSource()
             tags.removeSource()
             categories.removeSource()
@@ -111,6 +127,16 @@ class LedgerViewModel @Inject constructor(
     private fun addSources() {
         transactionRepo?.let {
             transactionsInt.setSource(it.getTransactions())
+            transactionPages.setSource(
+                Pager(PagingConfig(pageSize = TRANSACTIONS_PAGE_SIZE)) {
+                    val source = TransactionPageSource(it, TRANSACTIONS_PAGE_SIZE)
+                    transactionSource = source
+                    source
+                }.flow.cachedIn(
+                    viewModelScope
+                )
+            )
+
             monthlyTotals.setSource(it.getMonthlyTotals())
             tags.setSource(it.getAllTags())
             categories.setSource(it.getAllCategories())

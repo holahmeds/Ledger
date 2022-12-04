@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.add
 import androidx.fragment.app.commit
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,12 +18,13 @@ import com.holahmeds.ledger.LedgerViewModel
 import com.holahmeds.ledger.R
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionListBinding
-import com.holahmeds.ledger.ui.TransactionAdapter
 import com.holahmeds.ledger.ui.TransactionExporter
+import com.holahmeds.ledger.ui.recyclerview.TransactionComparator
+import com.holahmeds.ledger.ui.recyclerview.TransactionPagingAdapter
+import kotlinx.coroutines.launch
 
 class TransactionList : Fragment() {
     private val viewModel: LedgerViewModel by activityViewModels()
-    private var transactions: List<Transaction> = emptyList()
 
     lateinit var transactionExporter: TransactionExporter
 
@@ -65,16 +67,24 @@ class TransactionList : Fragment() {
 
         val binding = FragmentTransactionListBinding.inflate(inflater, container, false)
 
-        val transactionAdapter = TransactionAdapter { transaction: Transaction ->
+        val onSelectTransaction = { transaction: Transaction ->
             val dialog = TransactionListMenu()
             dialog.arguments = bundleOf(Pair("TRANSACTION_ID", transaction.id))
             dialog.show(parentFragmentManager, "transactionlistmenu")
         }
 
-        val liveTransactions = viewModel.getTransactions()
-        liveTransactions.observe(viewLifecycleOwner) { list ->
-            transactions = list
-            transactionAdapter.setData(list)
+//        val transactionAdapter = TransactionAdapter(onSelectTransaction)
+//        val liveTransactions = viewModel.getTransactions()
+//        liveTransactions.observe(viewLifecycleOwner) { list ->
+//            transactionAdapter.setData(list)
+//        }
+
+        val transactionAdapter =
+            TransactionPagingAdapter(TransactionComparator, onSelectTransaction)
+        viewModel.getTransactionPages().observe(viewLifecycleOwner) { pagingData ->
+            viewLifecycleOwner.lifecycleScope.launch {
+                transactionAdapter.submitData(pagingData)
+            }
         }
 
         viewModel.getError().observe(viewLifecycleOwner) { error ->

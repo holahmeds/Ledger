@@ -5,10 +5,17 @@ import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 import kotlinx.coroutines.flow.Flow
 
+data class PageParameters(
+    val offset: Int,
+    val limit: Int,
+)
+
 interface TransactionRepository {
     suspend fun getTransaction(transactionId: Long): Result<Transaction>
 
     fun getTransactions(): Flow<List<Transaction>>
+
+    suspend fun fetchTransactions(page: PageParameters? = null): List<Transaction>
 
     suspend fun insertTransaction(newTransaction: NewTransaction): Result<Long>
 

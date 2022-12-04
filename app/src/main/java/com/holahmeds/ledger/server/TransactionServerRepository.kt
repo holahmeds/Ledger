@@ -113,9 +113,21 @@ class TransactionServerRepository(
 
     override fun getTransactions(): Flow<List<Transaction>> {
         scope.launch {
-            fetchTransactions()
+            updateTransactions()
         }.addToTracker(jobProgressTracker)
         return transactions
+    }
+
+    override suspend fun fetchTransactions(page: PageParameters?): List<Transaction> {
+        val queryParams = if (page == null) {
+            emptyMap()
+        } else {
+            mapOf(
+                Pair("offset", page.offset.toString()),
+                Pair("limit", page.limit.toString())
+            )
+        }
+        return request(Get, "transactions", queryParams).body()
     }
 
     override suspend fun insertTransaction(newTransaction: NewTransaction): Result<Long> {
@@ -129,7 +141,7 @@ class TransactionServerRepository(
             return Result.Failure(Error.ConnectionError)
         }
         scope.launch {
-            fetchTransactions()
+            updateTransactions()
         }.addToTracker(jobProgressTracker)
 
         val returnedTransaction = response.body<Transaction>()
@@ -149,7 +161,7 @@ class TransactionServerRepository(
             }
         }
         scope.launch {
-            fetchTransactions()
+            updateTransactions()
         }.addToTracker(jobProgressTracker)
         return Result.Success(Unit)
     }
@@ -171,7 +183,7 @@ class TransactionServerRepository(
             return Result.Failure(Error.ConnectionError)
         }
         scope.launch {
-            fetchTransactions()
+            updateTransactions()
         }.addToTracker(jobProgressTracker)
 
         return Result.Success(Unit)
@@ -186,34 +198,34 @@ class TransactionServerRepository(
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to delete transaction", e)
         }
         scope.launch {
-            fetchTransactions()
+            updateTransactions()
         }.addToTracker(jobProgressTracker)
     }
 
     override fun getAllTags(): Flow<List<String>> {
         scope.launch {
-            fetchTags()
+            updateTags()
         }
         return tags
     }
 
     override fun getAllCategories(): Flow<List<String>> {
         scope.launch {
-            fetchCategories()
+            updateCategories()
         }
         return categories
     }
 
     override fun getAllTransactees(): Flow<List<String>> {
         scope.launch {
-            fetchTransactees()
+            updateTransactees()
         }
         return transactees
     }
 
     override fun getMonthlyTotals(): Flow<List<TransactionTotals>> {
         scope.launch {
-            fetchTransactions()
+            updateTransactions()
         }.addToTracker(jobProgressTracker)
         return monthlyTotal
     }
@@ -239,10 +251,9 @@ class TransactionServerRepository(
         return aggregates.values.toList()
     }
 
-    private suspend fun fetchTransactions() {
+    private suspend fun updateTransactions() {
         try {
-            val transactions: List<Transaction> = request(Get, "transactions").body()
-            this.transactions.value = transactions
+            this.transactions.value = fetchTransactions()
         } catch (e: ConnectException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed fetch transactions", e)
         } catch (e: ResponseException) {
@@ -250,7 +261,7 @@ class TransactionServerRepository(
         }
     }
 
-    private suspend fun fetchTags() {
+    private suspend fun updateTags() {
         try {
             val tags: List<String> = request(Get, "transactions/tags").body()
             this.tags.value = tags
@@ -261,7 +272,7 @@ class TransactionServerRepository(
         }
     }
 
-    private suspend fun fetchCategories() {
+    private suspend fun updateCategories() {
         try {
             val categories: List<String> = request(Get, "transactions/categories").body()
             this.categories.value = categories
@@ -272,7 +283,7 @@ class TransactionServerRepository(
         }
     }
 
-    private suspend fun fetchTransactees() {
+    private suspend fun updateTransactees() {
         try {
             val transactees: List<String> = request(Get, "transactions/transactees").body()
             this.transactees.value = transactees
@@ -283,12 +294,19 @@ class TransactionServerRepository(
         }
     }
 
-    private suspend fun request(method: HttpMethod, path: String): HttpResponse =
+    private suspend fun request(
+        method: HttpMethod,
+        path: String,
+        queryParams: Map<String, String> = emptyMap()
+    ): HttpResponse =
         withContext(Dispatchers.IO) {
             client.request(serverURL) {
                 this.method = method
                 url {
                     appendPathSegments(path)
+                    for (queryParam in queryParams) {
+                        parameters.append(queryParam.key, queryParam.value)
+                    }
                 }
             }
         }

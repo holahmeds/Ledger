@@ -1,15 +1,12 @@
 package com.holahmeds.ledger.database
 
-import com.holahmeds.ledger.Error
-import com.holahmeds.ledger.Result
-import com.holahmeds.ledger.TransactionRepository
+import com.holahmeds.ledger.*
 import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 import com.holahmeds.ledger.database.entities.Tag
 import com.holahmeds.ledger.database.entities.TransactionEntity
 import com.holahmeds.ledger.database.entities.TransactionTag
-import com.holahmeds.ledger.getResultOr
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +18,9 @@ import javax.inject.Inject
 
 class TransactionDatabaseRepository @Inject constructor(private val database: LedgerDatabase) :
     TransactionRepository {
+    private val transactionDao = database.transactionDao()
+    private val transactionTagDao = database.transactionTagDao()
+
     private val transactions: Flow<List<Transaction>>
 
     private val tags: Flow<List<String>>
@@ -30,24 +30,18 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
     private val monthlyTotal: Flow<List<TransactionTotals>>
 
     init {
-        val transactionDao = database.transactionDao()
         val tagDao = database.tagDao()
-        val transactionTagDao = database.transactionTagDao()
 
-        transactions = transactionDao.getAll()
-            .combine(transactionTagDao.getAll()) { transactionEntities, transactionTags ->
-                transactionEntities.map { transactionEntity ->
-                    transactionEntity.makeTransaction(
-                        transactionTags.getOrDefault(transactionEntity.id, emptyList())
-                    )
-                }
+        transactions = transactionDao.getAllFlow()
+            .combine(transactionTagDao.getAllFlow()) { transactionEntities, transactionTags ->
+                makeTransactions(transactionEntities, transactionTags)
             }
 
         tags = tagDao.getAll()
         categories = transactionDao.getAllCategories()
         transactees = transactionDao.getAllTransactees()
 
-        monthlyTotal = transactionDao.getAll().map { transactionEntities ->
+        monthlyTotal = transactionDao.getAllFlow().map { transactionEntities ->
             val aggregates: Map<YearMonth, TransactionTotals> = transactionEntities
                 .groupingBy { transaction -> YearMonth.from(transaction.date) }
                 .aggregate { key, accumulator, element, _ ->
@@ -71,6 +65,21 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
     }
 
     override fun getTransactions(): Flow<List<Transaction>> = transactions
+
+    override suspend fun fetchTransactions(page: PageParameters?): List<Transaction> =
+        coroutineScope {
+            val transactionEntities = if (page == null) {
+                transactionDao.getAll()
+            } else {
+                transactionDao.get(page.offset, page.limit)
+            }
+            val transactionTags = if (page == null) {
+                transactionTagDao.getAll()
+            } else {
+                transactionTagDao.getTagsForTransactions(transactionEntities.map { t -> t.id })
+            }
+            makeTransactions(transactionEntities, transactionTags)
+        }
 
     override suspend fun insertTransaction(newTransaction: NewTransaction): Result<Long> =
         coroutineScope {
@@ -152,4 +161,13 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
     override fun getAllTransactees(): Flow<List<String>> = transactees
 
     override fun getMonthlyTotals() = monthlyTotal
+
+    private fun makeTransactions(
+        transactionEntities: List<TransactionEntity>,
+        transactionTags: Map<Long, List<String>>
+    ) = transactionEntities.map { transactionEntity ->
+        transactionEntity.makeTransaction(
+            transactionTags.getOrDefault(transactionEntity.id, emptyList())
+        )
+    }
 }

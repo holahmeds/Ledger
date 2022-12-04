@@ -13,8 +13,16 @@ interface TransactionTagDao {
     suspend fun getTagsForTransaction(transactionId: Long): List<String>
 
     @MapInfo(keyColumn = "transactionId", valueColumn = "text")
+    @Query("SELECT transactionId, text FROM tag INNER JOIN transactiontag ON tag.id=transactiontag.tagId WHERE transactionId IN(:transactionIds)")
+    suspend fun getTagsForTransactions(transactionIds: List<Long>): Map<Long, List<String>>
+
+    @MapInfo(keyColumn = "transactionId", valueColumn = "text")
     @Query("SELECT transactionId, text FROM tag INNER JOIN transactiontag ON tag.id=transactiontag.tagId")
-    fun getAll(): Flow<Map<Long, List<String>>>
+    fun getAllFlow(): Flow<Map<Long, List<String>>>
+
+    @MapInfo(keyColumn = "transactionId", valueColumn = "text")
+    @Query("SELECT transactionId, text FROM tag INNER JOIN transactiontag ON tag.id=transactiontag.tagId")
+    fun getAll(): Map<Long, List<String>>
 
     @Insert
     suspend fun add(transactionTag: TransactionTag): Long

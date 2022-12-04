@@ -1,13 +1,9 @@
-package com.holahmeds.ledger.ui
+package com.holahmeds.ledger.ui.recyclerview
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.chip.ChipDrawable
-import com.google.android.material.chip.ChipGroup
 import com.holahmeds.ledger.R
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.BalanceCardBinding
@@ -40,16 +36,6 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
     class SubheaderViewHolder(binding: TransactionListSubheaderBinding) :
         RecyclerView.ViewHolder(binding.root) {
         val date: TextView = binding.dateView
-    }
-
-    class TransactionViewHolder(binding: TransactionCardBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        val transactionView: View = binding.root
-        val amount: TextView = binding.amount
-        val category: TextView = binding.category
-        val transactee: TextView = binding.transactee
-        val note: TextView = binding.note
-        val tags: ChipGroup = binding.tags
     }
 
     fun setData(newData: List<Transaction>) {
@@ -101,7 +87,7 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
             TRANSACTION_CARD -> {
                 val transactionView = LayoutInflater.from(parent.context).inflate(R.layout.transaction_card, parent, false)
                 val binding = TransactionCardBinding.bind(transactionView)
-                TransactionViewHolder(binding)
+                TransactionViewHolder(binding, onItemLongClick)
             }
             else -> {
                 // SUBHEADER
@@ -122,35 +108,7 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
                 val transactionHolder = holder as TransactionViewHolder
                 val transaction = transactions[itemMap[position - 1].second]
 
-                transactionHolder.amount.text = numberFormatter.format(transaction.amount)
-
-                transactionHolder.category.text = transaction.category
-
-                transactionHolder.transactee.text = transaction.transactee
-                setVisibility(transactionHolder.transactee, transaction.transactee != null)
-
-                transactionHolder.note.text = transaction.note
-                setVisibility(transactionHolder.note, transaction.note != null)
-
-                transactionHolder.tags.removeAllViews()
-                for (t in transaction.tags) {
-                    val context = transactionHolder.tags.context
-
-                    val chip = ChipDrawable.createFromResource(context, R.xml.chip_tag)
-                    chip.setText(t)
-                    chip.setBounds(0, 0, chip.intrinsicWidth, chip.intrinsicHeight)
-
-                    val view = ImageView(context)
-                    view.setImageDrawable(chip)
-
-                    transactionHolder.tags.addView(view)
-                }
-                setVisibility(transactionHolder.tags, transaction.tags.isNotEmpty())
-
-                transactionHolder.transactionView.setOnLongClickListener {
-                    onItemLongClick(transaction)
-                    true
-                }
+                transactionHolder.bind(transaction)
             }
             SUBHEADER -> {
                 val dateViewHolder = holder as SubheaderViewHolder
@@ -159,10 +117,6 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
                 dateViewHolder.date.text = date.format(FORMATTER)
             }
         }
-    }
-
-    private fun setVisibility(view: View, visible: Boolean) {
-        view.visibility = if (visible) { View.VISIBLE } else { View.GONE }
     }
 
     override fun getItemCount() = itemMap.size + 1
