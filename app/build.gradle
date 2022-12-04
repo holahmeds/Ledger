@@ -95,6 +95,7 @@ dependencies {
     implementation "io.ktor:ktor-client-logging:$ktor_version"
 
     testImplementation 'junit:junit:4.13.2'
+    testImplementation "org.mockito.kotlin:mockito-kotlin:4.1.0"
 
     androidTestImplementation 'junit:junit:4.13.2'
     androidTestImplementation "androidx.test:runner:1.4.0"

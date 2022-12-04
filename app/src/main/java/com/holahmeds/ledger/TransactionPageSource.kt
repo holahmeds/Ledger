@@ -1,6 +1,5 @@
 package com.holahmeds.ledger
 
-import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.holahmeds.ledger.data.Transaction
@@ -14,9 +13,8 @@ class TransactionPageSource(
     PagingSource<Int, Transaction>() {
 
     override fun getRefreshKey(state: PagingState<Int, Transaction>): Int? {
-        Log.d("PageSource", "anchorPosition: ${state.anchorPosition}")
         return state.anchorPosition?.let { anchorPosition ->
-            state.closestPageToPosition(anchorPosition)?.prevKey
+            anchorPosition - (anchorPosition % state.config.pageSize)
         }
     }
 
