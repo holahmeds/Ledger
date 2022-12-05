@@ -1,4 +1,4 @@
-package com.holahmeds.ledger.ui.recyclerview
+package com.holahmeds.ledger.ui.fragments.transaction_list
 
 import android.view.View
 import android.widget.ImageView
@@ -11,12 +11,14 @@ import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.TransactionCardBinding
 import java.text.NumberFormat
 
-private val numberFormatter: NumberFormat = NumberFormat.getInstance()
-
 class TransactionViewHolder(
     binding: TransactionCardBinding,
     private val onItemLongClick: (Transaction) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
+    companion object {
+        private val numberFormatter: NumberFormat = NumberFormat.getInstance()
+    }
+
     private val amount: TextView = binding.amount
     private val category: TextView = binding.category
     private val transactee: TextView = binding.transactee

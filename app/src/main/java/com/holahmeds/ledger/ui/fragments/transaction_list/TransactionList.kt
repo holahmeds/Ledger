@@ -1,4 +1,4 @@
-package com.holahmeds.ledger.ui.fragments
+package com.holahmeds.ledger.ui.fragments.transaction_list
 
 import android.os.Bundle
 import android.view.*
@@ -11,6 +11,8 @@ import androidx.fragment.app.add
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
+import androidx.paging.insertSeparators
+import androidx.paging.map
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.holahmeds.ledger.Error
@@ -19,8 +21,7 @@ import com.holahmeds.ledger.R
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionListBinding
 import com.holahmeds.ledger.ui.TransactionExporter
-import com.holahmeds.ledger.ui.recyclerview.TransactionComparator
-import com.holahmeds.ledger.ui.recyclerview.TransactionPagingAdapter
+import com.holahmeds.ledger.ui.fragments.BannerFragment
 import kotlinx.coroutines.launch
 
 class TransactionList : Fragment() {
@@ -80,10 +81,24 @@ class TransactionList : Fragment() {
 //        }
 
         val transactionAdapter =
-            TransactionPagingAdapter(TransactionComparator, onSelectTransaction)
+            TransactionPagingAdapter(onSelectTransaction)
         viewModel.getTransactionPages().observe(viewLifecycleOwner) { pagingData ->
             viewLifecycleOwner.lifecycleScope.launch {
-                transactionAdapter.submitData(pagingData)
+                transactionAdapter.submitData(pagingData.map {
+                    TransactionListItem.TransactionItem(it)
+                }.insertSeparators { next, prev ->
+                    when {
+                        prev == null -> {
+                            null
+                        }
+                        prev.transaction.date != next?.transaction?.date -> {
+                            TransactionListItem.Subheader(prev.transaction.date)
+                        }
+                        else -> {
+                            null
+                        }
+                    }
+                })
             }
         }
 

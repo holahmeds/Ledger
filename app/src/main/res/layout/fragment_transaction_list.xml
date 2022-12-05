@@ -45,7 +45,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/banner"
-        tools:context=".ui.fragments.TransactionList"
+        tools:context=".ui.fragments.transaction_list.TransactionList"
         tools:listitem="@layout/transaction_card" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

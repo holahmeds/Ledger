@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/transactionList"
-        android:name="com.holahmeds.ledger.ui.fragments.TransactionList"
+        android:name="com.holahmeds.ledger.ui.fragments.transaction_list.TransactionList"
         android:label="@string/app_name"
         tools:layout="@layout/fragment_transaction_list">
         <action

@@ -1,4 +1,4 @@
-package com.holahmeds.ledger.ui.fragments
+package com.holahmeds.ledger.ui.fragments.transaction_list
 
 import android.app.AlertDialog
 import android.content.DialogInterface

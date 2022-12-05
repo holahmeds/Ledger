@@ -1,4 +1,4 @@
-package com.holahmeds.ledger.ui.recyclerview
+package com.holahmeds.ledger.ui.fragments.transaction_list
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -12,7 +12,6 @@ import com.holahmeds.ledger.databinding.TransactionListSubheaderBinding
 import java.math.BigDecimal
 import java.text.NumberFormat
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
     : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -31,11 +30,6 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
 
     class BalanceViewHolder(binding: BalanceCardBinding) : RecyclerView.ViewHolder(binding.root) {
         var balance: TextView = binding.balanceView
-    }
-
-    class SubheaderViewHolder(binding: TransactionListSubheaderBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        val date: TextView = binding.dateView
     }
 
     fun setData(newData: List<Transaction>) {
@@ -114,7 +108,7 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
                 val dateViewHolder = holder as SubheaderViewHolder
                 val date = dates[itemMap[position - 1].second]
 
-                dateViewHolder.date.text = date.format(FORMATTER)
+                dateViewHolder.bind(date)
             }
         }
     }
@@ -125,7 +119,5 @@ class TransactionAdapter(private val onItemLongClick: (Transaction) -> Unit)
         private var BALANCE_CARD = 0
         private var TRANSACTION_CARD = 1
         private var SUBHEADER = 2
-
-        private var FORMATTER = DateTimeFormatter.ofPattern("EEE d MMM yyyy")
     }
 }
