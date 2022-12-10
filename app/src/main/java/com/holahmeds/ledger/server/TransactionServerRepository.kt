@@ -111,13 +111,6 @@ class TransactionServerRepository(
         }
     }
 
-    override fun getTransactions(): Flow<List<Transaction>> {
-        scope.launch {
-            updateTransactions()
-        }.addToTracker(jobProgressTracker)
-        return transactions
-    }
-
     override suspend fun fetchTransactions(page: PageParameters?): List<Transaction> {
         val queryParams = if (page == null) {
             emptyMap()

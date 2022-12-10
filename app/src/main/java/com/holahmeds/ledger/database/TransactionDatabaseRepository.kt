@@ -10,7 +10,6 @@ import com.holahmeds.ledger.database.entities.TransactionTag
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 import java.time.YearMonth
@@ -21,8 +20,6 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
     private val transactionDao = database.transactionDao()
     private val transactionTagDao = database.transactionTagDao()
 
-    private val transactions: Flow<List<Transaction>>
-
     private val tags: Flow<List<String>>
     private val categories: Flow<List<String>>
     private val transactees: Flow<List<String>>
@@ -31,11 +28,6 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
 
     init {
         val tagDao = database.tagDao()
-
-        transactions = transactionDao.getAllFlow()
-            .combine(transactionTagDao.getAllFlow()) { transactionEntities, transactionTags ->
-                makeTransactions(transactionEntities, transactionTags)
-            }
 
         tags = tagDao.getAll()
         categories = transactionDao.getAllCategories()
@@ -63,8 +55,6 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
         val tags = database.transactionTagDao().getTagsForTransaction(transactionId)
         return Result.Success(transactionEntity.makeTransaction(tags))
     }
-
-    override fun getTransactions(): Flow<List<Transaction>> = transactions
 
     override suspend fun fetchTransactions(page: PageParameters?): List<Transaction> =
         coroutineScope {

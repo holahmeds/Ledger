@@ -74,12 +74,6 @@ class TransactionExporter(
                 return@register
             }
 
-            val transactions = viewModel.getTransactions().value
-            if (transactions == null) {
-                Toast.makeText(context, "Transactions not available", Toast.LENGTH_LONG).show()
-                return@register
-            }
-
             val outputStream = context.applicationContext.contentResolver.openOutputStream(uri)
             if (outputStream == null) {
                 Log.e("TransactionExporter", "Content Provider crashed")
@@ -87,6 +81,12 @@ class TransactionExporter(
             }
 
             owner.lifecycleScope.launch {
+                val transactions = viewModel.getTransactions()
+                if (transactions == null) {
+                    Toast.makeText(context, "Transactions not available", Toast.LENGTH_LONG).show()
+                    return@launch
+                }
+
                 withContext(Dispatchers.IO) {
                     outputStream.writer().use {
                         val transactionSerializer = TransactionSerializer()

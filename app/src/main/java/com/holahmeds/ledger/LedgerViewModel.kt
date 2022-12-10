@@ -26,7 +26,6 @@ class LedgerViewModel @Inject constructor(
 ) : ViewModel() {
     private var transactionRepo: TransactionRepository? = null
 
-    private val transactionsInt: FlowMediator<List<Transaction>> = FlowMediator(viewModelScope)
     private var transactionSource: PagingSource<Int, Transaction>? = null
     private val transactionPages: FlowMediator<PagingData<Transaction>> =
         FlowMediator(viewModelScope)
@@ -55,7 +54,7 @@ class LedgerViewModel @Inject constructor(
         return job.await()
     }
 
-    fun getTransactions(): LiveData<List<Transaction>> = transactionsInt
+    suspend fun getTransactions(): List<Transaction>? = transactionRepo?.fetchTransactions()
 
     fun getTransactionPages() = transactionPages
 
@@ -129,7 +128,6 @@ class LedgerViewModel @Inject constructor(
 
     private fun removeSources() {
         transactionRepo?.let {
-            transactionsInt.removeSource()
             transactionSource = null
             transactionPages.removeSource()
 
@@ -142,7 +140,6 @@ class LedgerViewModel @Inject constructor(
 
     private fun addSources() {
         transactionRepo?.let {
-            transactionsInt.setSource(it.getTransactions())
             transactionPages.setSource(
                 Pager(PagingConfig(pageSize = TRANSACTIONS_PAGE_SIZE)) {
                     val source = TransactionPageSource(it, TRANSACTIONS_PAGE_SIZE)
