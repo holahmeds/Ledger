@@ -14,6 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import javax.inject.Inject
 
 const val TRANSACTIONS_PAGE_SIZE = 10
@@ -34,6 +35,8 @@ class LedgerViewModel @Inject constructor(
     private val tags: FlowMediator<List<String>> = FlowMediator(viewModelScope)
     private val categories: FlowMediator<List<String>> = FlowMediator(viewModelScope)
     private val transactees: FlowMediator<List<String>> = FlowMediator(viewModelScope)
+
+    private val balance: MutableLiveData<BigDecimal> = MutableLiveData()
 
     private var error: MutableLiveData<Error> = MutableLiveData()
 
@@ -61,6 +64,7 @@ class LedgerViewModel @Inject constructor(
     fun insertTransaction(newTransaction: NewTransaction) {
         viewModelScope.launch {
             transactionRepo?.insertTransaction(newTransaction)
+            updateBalance(newTransaction.amount)
             transactionSource?.invalidate()
         }.addToTracker(jobProgressTracker)
     }
@@ -68,6 +72,7 @@ class LedgerViewModel @Inject constructor(
     fun insertAll(transactions: List<NewTransaction>) {
         viewModelScope.launch {
             transactionRepo?.insertAll(transactions)
+            updateBalance(transactions.sumOf { t -> t.amount })
             transactionSource?.invalidate()
         }.addToTracker(jobProgressTracker)
     }
@@ -75,6 +80,7 @@ class LedgerViewModel @Inject constructor(
     fun updateTransaction(transaction: Transaction) {
         viewModelScope.launch {
             transactionRepo?.updateTransaction(transaction)
+            balance.value = transactionRepo?.getBalance()
             transactionSource?.invalidate()
         }.addToTracker(jobProgressTracker)
     }
@@ -82,6 +88,7 @@ class LedgerViewModel @Inject constructor(
     fun deleteTransaction(transactionId: Long) {
         viewModelScope.launch {
             transactionRepo?.deleteTransaction(transactionId)
+            balance.value = transactionRepo?.getBalance()
             transactionSource?.invalidate()
         }.addToTracker(jobProgressTracker)
     }
@@ -91,6 +98,8 @@ class LedgerViewModel @Inject constructor(
     fun getAllCategories(): LiveData<List<String>> = categories
 
     fun getAllTransactees(): LiveData<List<String>> = transactees
+
+    fun getBalance(): LiveData<BigDecimal> = balance
 
     fun getError(): LiveData<Error> = error
 
@@ -106,10 +115,17 @@ class LedgerViewModel @Inject constructor(
                     setTransactionRepo(null)
                 }
             }
+
+            balance.value = transactionRepo?.getBalance()
         }.addToTracker(jobProgressTracker)
     }
 
     fun isJobInProgress(): LiveData<Boolean> = isJobInProgress
+
+    private suspend fun updateBalance(delta: BigDecimal) {
+        balance.value = balance.value?.add(delta)
+        balance.value = transactionRepo?.getBalance()
+    }
 
     private fun removeSources() {
         transactionRepo?.let {

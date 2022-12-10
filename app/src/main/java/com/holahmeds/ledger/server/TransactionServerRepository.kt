@@ -230,6 +230,14 @@ class TransactionServerRepository(
         return monthlyTotal
     }
 
+
+    override suspend fun getBalance(): BigDecimal {
+        data class BalanceResponse(val balance: BigDecimal)
+
+        val response: BalanceResponse = request(Get, "transactions/balance").body()
+        return response.balance
+    }
+
     override fun close() {
         scope.cancel()
         client.close()

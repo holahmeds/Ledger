@@ -17,6 +17,10 @@ class TransactionViewHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
     companion object {
         private val numberFormatter: NumberFormat = NumberFormat.getInstance()
+
+        init {
+            numberFormatter.minimumFractionDigits = 2
+        }
     }
 
     private val amount: TextView = binding.amount

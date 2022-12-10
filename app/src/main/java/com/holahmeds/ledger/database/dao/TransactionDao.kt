@@ -6,6 +6,7 @@ import androidx.room.Query
 import androidx.room.Update
 import com.holahmeds.ledger.database.entities.TransactionEntity
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
 
 @Dao
 interface TransactionDao {
@@ -35,4 +36,7 @@ interface TransactionDao {
 
     @Query("DELETE FROM transaction_table WHERE id=:transactionId")
     suspend fun delete(transactionId: Long)
+
+    @Query("SELECT SUM(amount) FROM transaction_table")
+    suspend fun getBalance(): BigDecimal
 }

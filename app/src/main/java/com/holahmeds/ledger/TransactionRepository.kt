@@ -4,6 +4,7 @@ import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
 
 data class PageParameters(
     val offset: Int,
@@ -35,4 +36,6 @@ interface TransactionRepository {
     fun getAllTransactees(): Flow<List<String>>
 
     fun getMonthlyTotals(): Flow<List<TransactionTotals>>
+
+    suspend fun getBalance(): BigDecimal
 }

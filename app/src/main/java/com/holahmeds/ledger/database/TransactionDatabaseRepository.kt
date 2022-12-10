@@ -162,6 +162,10 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
 
     override fun getMonthlyTotals() = monthlyTotal
 
+    override suspend fun getBalance(): BigDecimal {
+        return transactionDao.getBalance();
+    }
+
     private fun makeTransactions(
         transactionEntities: List<TransactionEntity>,
         transactionTags: Map<Long, List<String>>

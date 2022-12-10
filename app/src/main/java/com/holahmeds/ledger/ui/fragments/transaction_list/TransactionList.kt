@@ -23,8 +23,11 @@ import com.holahmeds.ledger.databinding.FragmentTransactionListBinding
 import com.holahmeds.ledger.ui.TransactionExporter
 import com.holahmeds.ledger.ui.fragments.BannerFragment
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
 
 class TransactionList : Fragment() {
+    private val numberFormatter: NumberFormat = NumberFormat.getInstance()
+
     private val viewModel: LedgerViewModel by activityViewModels()
 
     lateinit var transactionExporter: TransactionExporter
@@ -58,6 +61,10 @@ class TransactionList : Fragment() {
         }
     }
 
+    init {
+        numberFormatter.minimumFractionDigits = 2
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -72,6 +79,14 @@ class TransactionList : Fragment() {
             val dialog = TransactionListMenu()
             dialog.arguments = bundleOf(Pair("TRANSACTION_ID", transaction.id))
             dialog.show(parentFragmentManager, "transactionlistmenu")
+        }
+
+        viewModel.getBalance().observe(viewLifecycleOwner) { balance ->
+            binding.balance.balanceView.text = if (balance == null) {
+                ""
+            } else {
+                numberFormatter.format(balance)
+            }
         }
 
 //        val transactionAdapter = TransactionAdapter(onSelectTransaction)
