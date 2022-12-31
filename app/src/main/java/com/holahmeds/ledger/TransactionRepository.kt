@@ -33,7 +33,7 @@ interface TransactionRepository {
 
     fun getAllTransactees(): Flow<List<String>>
 
-    fun getMonthlyTotals(): Flow<List<TransactionTotals>>
+    suspend fun getMonthlyTotals(): List<TransactionTotals>
 
     suspend fun getBalance(): BigDecimal
 }

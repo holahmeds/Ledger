@@ -10,7 +10,6 @@ import com.holahmeds.ledger.database.entities.TransactionTag
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 import java.time.YearMonth
 import javax.inject.Inject
@@ -24,29 +23,12 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
     private val categories: Flow<List<String>>
     private val transactees: Flow<List<String>>
 
-    private val monthlyTotal: Flow<List<TransactionTotals>>
-
     init {
         val tagDao = database.tagDao()
 
         tags = tagDao.getAll()
         categories = transactionDao.getAllCategories()
         transactees = transactionDao.getAllTransactees()
-
-        monthlyTotal = transactionDao.getAllFlow().map { transactionEntities ->
-            val aggregates: Map<YearMonth, TransactionTotals> = transactionEntities
-                .groupingBy { transaction -> YearMonth.from(transaction.date) }
-                .aggregate { key, accumulator, element, _ ->
-                    val ac = accumulator ?: TransactionTotals(key, BigDecimal.ZERO, BigDecimal.ZERO)
-                    if (element.amount > BigDecimal.ZERO) {
-                        ac.totalIncome += element.amount
-                    } else {
-                        ac.totalExpense -= element.amount
-                    }
-                    ac
-                }
-            aggregates.values.toList()
-        }
     }
 
     override suspend fun getTransaction(transactionId: Long): Result<Transaction> {
@@ -150,10 +132,13 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
 
     override fun getAllTransactees(): Flow<List<String>> = transactees
 
-    override fun getMonthlyTotals() = monthlyTotal
+    override suspend fun getMonthlyTotals(): List<TransactionTotals> {
+        val transactions = fetchTransactions()
+        return extractMonthlyTotals(transactions)
+    }
 
     override suspend fun getBalance(): BigDecimal {
-        return transactionDao.getBalance();
+        return transactionDao.getBalance()
     }
 
     private fun makeTransactions(
@@ -163,5 +148,21 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
         transactionEntity.makeTransaction(
             transactionTags.getOrDefault(transactionEntity.id, emptyList())
         )
+    }
+
+    private fun extractMonthlyTotals(transactions: List<Transaction>): List<TransactionTotals> {
+        val aggregates: Map<YearMonth, TransactionTotals> = transactions
+            .groupingBy { transaction -> YearMonth.from(transaction.date) }
+            .aggregate { key, accumulator, element, _ ->
+                val ac = accumulator
+                    ?: TransactionTotals(key.atDay(1), BigDecimal.ZERO, BigDecimal.ZERO)
+                if (element.amount > BigDecimal.ZERO) {
+                    ac.income += element.amount
+                } else {
+                    ac.expense -= element.amount
+                }
+                ac
+            }
+        return aggregates.values.toList()
     }
 }

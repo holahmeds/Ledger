@@ -18,7 +18,6 @@ import org.junit.Before
 import org.junit.Test
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.YearMonth
 
 class TransactionDatabaseRepositoryTest {
     private lateinit var database: LedgerDatabase
@@ -226,17 +225,17 @@ class TransactionDatabaseRepositoryTest {
         assertEquals(
             listOf(
                 TransactionTotals(
-                    YearMonth.of(2022, 8),
+                    LocalDate.of(2022, 8, 1),
                     BigDecimal("444.00"),
                     BigDecimal.ZERO,
                 ),
                 TransactionTotals(
-                    YearMonth.of(2022, 7),
+                    LocalDate.of(2022, 7, 1),
                     BigDecimal("123.00"),
                     BigDecimal.ZERO,
                 )
             ),
-            databaseRepository.getMonthlyTotals().first()
+            databaseRepository.getMonthlyTotals()
         )
     }
 }

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
@@ -16,6 +17,7 @@ import com.github.mikephil.charting.formatter.ValueFormatter
 import com.holahmeds.ledger.LedgerViewModel
 import com.holahmeds.ledger.R
 import com.holahmeds.ledger.databinding.FragmentChartBinding
+import kotlinx.coroutines.launch
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
@@ -30,15 +32,17 @@ class ChartFragment : Fragment() {
         // Inflate the layout for this fragment
         val binding = FragmentChartBinding.inflate(inflater, container, false)
 
-        viewModel.getMonthlyTotals().observe(viewLifecycleOwner) { list ->
+        lifecycleScope.launch {
+            val list = viewModel.getMonthlyTotals() ?: return@launch
+
             val incomeEntries = mutableListOf<BarEntry>()
             val expenseEntries = mutableListOf<BarEntry>()
 
             for (transaction in list) {
                 incomeEntries.add(BarEntry(transaction.month.let { it.year * 12 + it.monthValue - 1 }
-                    .toFloat(), transaction.totalIncome.toFloat()))
+                    .toFloat(), transaction.income.toFloat()))
                 expenseEntries.add(BarEntry(transaction.month.let { it.year * 12 + it.monthValue - 1 }
-                    .toFloat(), transaction.totalExpense.toFloat()))
+                    .toFloat(), transaction.expense.toFloat()))
             }
 
             // Entries need to be sorted by x

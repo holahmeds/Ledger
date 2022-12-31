@@ -25,11 +25,9 @@ import io.ktor.serialization.jackson.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 import java.net.ConnectException
 import java.net.URL
-import java.time.YearMonth
 
 class TransactionServerRepository(
     private val jobProgressTracker: JobProgressTracker,
@@ -86,10 +84,6 @@ class TransactionServerRepository(
     }
 
     private val transactions: MutableStateFlow<List<Transaction>> = MutableStateFlow(emptyList())
-
-    private val monthlyTotal: Flow<List<TransactionTotals>> = transactions.map { transactions ->
-        extractMonthlyTotals(transactions)
-    }
 
     private val tags: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
     private val categories: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
@@ -216,11 +210,8 @@ class TransactionServerRepository(
         return transactees
     }
 
-    override fun getMonthlyTotals(): Flow<List<TransactionTotals>> {
-        scope.launch {
-            updateTransactions()
-        }.addToTracker(jobProgressTracker)
-        return monthlyTotal
+    override suspend fun getMonthlyTotals(): List<TransactionTotals> {
+        return request(Get, "transactions/monthly").body()
     }
 
 
@@ -234,22 +225,6 @@ class TransactionServerRepository(
     override fun close() {
         scope.cancel()
         client.close()
-    }
-
-    private fun extractMonthlyTotals(transactions: List<Transaction>): List<TransactionTotals> {
-        val aggregates: Map<YearMonth, TransactionTotals> = transactions
-            .groupingBy { transaction -> YearMonth.from(transaction.date) }
-            .aggregate { key, accumulator, element, _ ->
-                val ac = accumulator
-                    ?: TransactionTotals(key, BigDecimal.ZERO, BigDecimal.ZERO)
-                if (element.amount > BigDecimal.ZERO) {
-                    ac.totalIncome += element.amount
-                } else {
-                    ac.totalExpense -= element.amount
-                }
-                ac
-            }
-        return aggregates.values.toList()
     }
 
     private suspend fun updateTransactions() {

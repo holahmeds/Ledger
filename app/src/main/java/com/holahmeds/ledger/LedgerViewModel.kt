@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.*
 import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
-import com.holahmeds.ledger.data.TransactionTotals
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -30,7 +29,6 @@ class LedgerViewModel @Inject constructor(
     private val transactionPages: FlowMediator<PagingData<Transaction>> =
         FlowMediator(viewModelScope)
 
-    private val monthlyTotals: FlowMediator<List<TransactionTotals>> = FlowMediator(viewModelScope)
     private val tags: FlowMediator<List<String>> = FlowMediator(viewModelScope)
     private val categories: FlowMediator<List<String>> = FlowMediator(viewModelScope)
     private val transactees: FlowMediator<List<String>> = FlowMediator(viewModelScope)
@@ -58,7 +56,7 @@ class LedgerViewModel @Inject constructor(
 
     fun getTransactionPages() = transactionPages
 
-    fun getMonthlyTotals() = monthlyTotals
+    suspend fun getMonthlyTotals() = transactionRepo?.getMonthlyTotals()
 
     fun insertTransaction(newTransaction: NewTransaction) {
         viewModelScope.launch {
@@ -131,7 +129,6 @@ class LedgerViewModel @Inject constructor(
             transactionSource = null
             transactionPages.removeSource()
 
-            monthlyTotals.removeSource()
             tags.removeSource()
             categories.removeSource()
             transactees.removeSource()
@@ -150,7 +147,6 @@ class LedgerViewModel @Inject constructor(
                 )
             )
 
-            monthlyTotals.setSource(it.getMonthlyTotals())
             tags.setSource(it.getAllTags())
             categories.setSource(it.getAllCategories())
             transactees.setSource(it.getAllTransactees())
