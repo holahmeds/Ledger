@@ -11,10 +11,12 @@ import androidx.fragment.app.add
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
+import androidx.paging.LoadState
 import androidx.paging.insertSeparators
 import androidx.paging.map
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.holahmeds.ledger.Error
 import com.holahmeds.ledger.LedgerViewModel
 import com.holahmeds.ledger.R
@@ -22,8 +24,10 @@ import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionListBinding
 import com.holahmeds.ledger.ui.TransactionExporter
 import com.holahmeds.ledger.ui.fragments.BannerFragment
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
+import java.util.concurrent.locks.ReentrantLock
 
 class TransactionList : Fragment() {
     private val numberFormatter: NumberFormat = NumberFormat.getInstance()
@@ -31,6 +35,11 @@ class TransactionList : Fragment() {
     private val viewModel: LedgerViewModel by activityViewModels()
 
     lateinit var transactionExporter: TransactionExporter
+
+    private var jobInProgress = false
+    private var pagerLoading = false
+    private val progressBarLock = ReentrantLock()
+    private var progressBar: LinearProgressIndicator? = null
 
     private val menuProvider = object : MenuProvider {
         override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -143,10 +152,13 @@ class TransactionList : Fragment() {
             }
         }
 
+        this.progressBar = binding.progressBar
         viewModel.isJobInProgress().observe(viewLifecycleOwner) { isInProgress ->
-            binding.progressBar.visibility = when (isInProgress) {
-                true -> View.VISIBLE
-                else -> View.INVISIBLE
+            setJobStatus(isInProgress)
+        }
+        lifecycleScope.launch {
+            transactionAdapter.loadStateFlow.collectLatest { loadStates ->
+                setPagerStatus(loadStates.refresh is LoadState.Loading || loadStates.append is LoadState.Loading || loadStates.prepend is LoadState.Loading)
             }
         }
 
@@ -181,4 +193,30 @@ class TransactionList : Fragment() {
         return binding.root
     }
 
+    private fun setJobStatus(inProgress: Boolean) {
+        progressBarLock.lock()
+        try {
+            this.jobInProgress = inProgress
+            updateProgressBarVisibility()
+        } finally {
+            progressBarLock.unlock()
+        }
+    }
+
+    private fun setPagerStatus(inProgress: Boolean) {
+        progressBarLock.lock()
+        try {
+            this.pagerLoading = inProgress
+            updateProgressBarVisibility()
+        } finally {
+            progressBarLock.unlock()
+        }
+    }
+
+    private fun updateProgressBarVisibility() {
+        progressBar?.visibility = when (jobInProgress || pagerLoading) {
+            true -> View.VISIBLE
+            else -> View.INVISIBLE
+        }
+    }
 }
