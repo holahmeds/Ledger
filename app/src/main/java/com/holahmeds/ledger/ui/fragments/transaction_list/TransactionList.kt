@@ -27,6 +27,7 @@ import com.holahmeds.ledger.ui.fragments.BannerFragment
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
+import java.time.LocalDate
 import java.util.concurrent.locks.ReentrantLock
 
 class TransactionList : Fragment() {
@@ -40,6 +41,8 @@ class TransactionList : Fragment() {
     private var pagerLoading = false
     private val progressBarLock = ReentrantLock()
     private var progressBar: LinearProgressIndicator? = null
+
+    private var newestDate: LocalDate? = null
 
     private val menuProvider = object : MenuProvider {
         override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -161,6 +164,16 @@ class TransactionList : Fragment() {
                 setPagerStatus(loadStates.refresh is LoadState.Loading || loadStates.append is LoadState.Loading || loadStates.prepend is LoadState.Loading)
             }
         }
+
+        transactionAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                val firstItem = transactionAdapter.peek(0)
+                if (firstItem is TransactionListItem.Subheader && firstItem.date != newestDate) {
+                    newestDate = firstItem.date
+                    binding.transactionList.scrollToPosition(0)
+                }
+            }
+        })
 
         // Set the adapter
         with(binding.transactionList) {
