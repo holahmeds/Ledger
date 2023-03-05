@@ -32,30 +32,28 @@ import java.net.URL
 class TransactionServerRepository(
     private val jobProgressTracker: JobProgressTracker,
     private val serverURL: URL,
-    authToken: String
+    private val credentialManager: CredentialManager
 ) :
     TransactionRepository, AutoCloseable {
     companion object {
         const val TRANSACTION_SERVER_REPOSITORY = "TransactionServerRepository"
-        suspend fun create(
+        fun create(
             jobProgressTracker: JobProgressTracker,
             serverURL: URL,
-            credentials: Credentials
+            credentialManager: CredentialManager
         ): Result<TransactionServerRepository> {
-            return when (val tokenResult = getAuthToken(serverURL, credentials)) {
-                is Result.Failure -> {
-                    Result.Failure(tokenResult.error)
-                }
-                is Result.Success -> {
-                    Result.Success(
-                        TransactionServerRepository(
-                            jobProgressTracker,
-                            serverURL,
-                            tokenResult.result
-                        )
-                    )
-                }
+            val token = credentialManager.getToken()
+            if (token == null) {
+                return Result.Failure(Error.AuthorizationError("Not Authenticated"))
             }
+
+            return Result.Success(
+                TransactionServerRepository(
+                    jobProgressTracker,
+                    serverURL,
+                    credentialManager
+                )
+            )
         }
     }
 
@@ -63,7 +61,22 @@ class TransactionServerRepository(
         install(Auth) {
             bearer {
                 loadTokens {
-                    BearerTokens(authToken, "")
+                    val token = credentialManager.getToken()
+                    if (token == null) {
+                        null
+                    } else {
+                        BearerTokens(token, "")
+                    }
+                }
+                refreshTokens {
+                    when (val authResult = credentialManager.reAuthenticate(serverURL)) {
+                        is Result.Success -> {
+                            BearerTokens(authResult.result, "")
+                        }
+                        is Result.Failure -> {
+                            null
+                        }
+                    }
                 }
             }
         }

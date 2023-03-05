@@ -15,10 +15,17 @@ import com.holahmeds.ledger.databinding.FragmentLoginBinding
 import com.holahmeds.ledger.getResultOr
 import com.holahmeds.ledger.server.*
 import com.holahmeds.ledger.ui.validation.TextNotEmptyValidation
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.net.URL
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class LoginFragment : Fragment(R.layout.fragment_login) {
+
+    @Inject
+    lateinit var credentialManager: CredentialManager
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -63,7 +70,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             )
             val navController = NavHostFragment.findNavController(this)
             lifecycleScope.launch {
-                when (getAuthToken(serverURL, credentials)) {
+                when (credentialManager.authenticate(serverURL, credentials)) {
                     is Result.Success -> {
                         with(sharedPreferences.edit()) {
                             putString(PREFERENCE_USERNAME, credentials.id)
