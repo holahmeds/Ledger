@@ -1,12 +1,17 @@
 package com.holahmeds.ledger.database
 
-import com.holahmeds.ledger.*
+import com.holahmeds.ledger.Error
+import com.holahmeds.ledger.Filter
+import com.holahmeds.ledger.PageParameters
+import com.holahmeds.ledger.Result
+import com.holahmeds.ledger.TransactionRepository
 import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 import com.holahmeds.ledger.database.entities.Tag
 import com.holahmeds.ledger.database.entities.TransactionEntity
 import com.holahmeds.ledger.database.entities.TransactionTag
+import com.holahmeds.ledger.getResultOr
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -52,6 +57,13 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
             }
             makeTransactions(transactionEntities, transactionTags)
         }
+
+    override suspend fun fetchTransactions(
+        page: PageParameters?,
+        filter: Filter
+    ): List<Transaction> {
+        TODO("Not yet implemented")
+    }
 
     override suspend fun insertTransaction(newTransaction: NewTransaction): Result<Long> =
         coroutineScope {

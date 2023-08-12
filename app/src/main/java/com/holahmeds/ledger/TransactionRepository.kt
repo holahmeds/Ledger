@@ -5,16 +5,26 @@ import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
+import java.time.LocalDate
 
 data class PageParameters(
     val offset: Int,
     val limit: Int,
 )
 
+data class Filter(
+    val from: LocalDate?,
+    val until: LocalDate?,
+    val category: String?,
+    val transactee: String?,
+)
+
 interface TransactionRepository {
     suspend fun getTransaction(transactionId: Long): Result<Transaction>
 
     suspend fun fetchTransactions(page: PageParameters? = null): List<Transaction>
+
+    suspend fun fetchTransactions(page: PageParameters? = null, filter: Filter): List<Transaction>
 
     suspend fun insertTransaction(newTransaction: NewTransaction): Result<Long>
 
