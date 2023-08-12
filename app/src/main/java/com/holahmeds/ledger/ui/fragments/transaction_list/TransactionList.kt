@@ -1,7 +1,12 @@
 package com.holahmeds.ledger.ui.fragments.transaction_list
 
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -24,6 +29,7 @@ import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionListBinding
 import com.holahmeds.ledger.ui.TransactionExporter
 import com.holahmeds.ledger.ui.fragments.BannerFragment
+import com.holahmeds.ledger.ui.fragments.FilterDialog
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -51,14 +57,22 @@ class TransactionList : Fragment() {
 
         override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
             when (menuItem.itemId) {
+                R.id.filter -> {
+                    val dialog = FilterDialog()
+                    dialog.show(parentFragmentManager, "transactionlistmenu")
+                    return true
+                }
+
                 R.id.export -> {
                     transactionExporter.export()
                     return true
                 }
+
                 R.id.import_transactions -> {
                     transactionExporter.import()
                     return true
                 }
+
                 R.id.chart -> {
                     val navController = NavHostFragment.findNavController(this@TransactionList)
                     navController.navigate(R.id.chartFragment)

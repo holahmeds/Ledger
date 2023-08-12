@@ -13,6 +13,8 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
 
         <item name="textInputStyle">@style/AppTheme.DenseInputTextLayout</item>
+
+        <item name="materialAlertDialogTheme">@style/AppTheme.Dialog</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -24,6 +26,14 @@
 
     <style name="AppTheme.DenseInputTextLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
         <item name="android:textColorHint">@color/textInputHint</item>
+    </style>
+
+    <style name="AppTheme.Dialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="materialAlertDialogTitleTextStyle">@style/AppTheme.Dialog.Title</item>
+    </style>
+
+    <style name="AppTheme.Dialog.Title" parent="MaterialAlertDialog.MaterialComponents.Title.Text">
+        <item name="android:textSize">20sp</item>
     </style>
 
 </resources>

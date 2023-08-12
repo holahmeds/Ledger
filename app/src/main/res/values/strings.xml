@@ -37,4 +37,8 @@
     <string name="error_user_already_exists">User already exists</string>
     <string name="error_unkown">Unknown error</string>
     <string name="error_signup_disabled">Signup disabled for this server</string>
+    <string name="set_filter">Filter</string>
+    <string name="remove">Remove</string>
+    <string name="from_date">From Date</string>
+    <string name="until_date">Until Date</string>
 </resources>

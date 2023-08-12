@@ -42,7 +42,7 @@ class LedgerViewModel @Inject constructor(
 
     private val isJobInProgress: FlowMediator<Boolean> = FlowMediator(viewModelScope)
 
-    private val filter: Filter = Filter()
+    private var filter: Filter = Filter()
     private val isFilterActive: MutableLiveData<Boolean> = MutableLiveData(false)
 
     init {
@@ -126,9 +126,12 @@ class LedgerViewModel @Inject constructor(
 
     fun isJobInProgress(): LiveData<Boolean> = isJobInProgress
 
+    fun getFilter() = filter
+
     fun setFilter(filter: Filter) {
-        transactionSource?.setFilter(filter)
+        this.filter = filter
         isFilterActive.value = filter.isActive()
+        transactionSource?.setFilter(filter)
     }
 
     fun isFilterActive(): LiveData<Boolean> = isFilterActive
