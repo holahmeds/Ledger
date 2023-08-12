@@ -18,7 +18,7 @@ class TransactionPageSourceTest {
     fun testRefresh() = runTest {
         val transactionRepo: TransactionRepository = mock()
 
-        val pageSource = TransactionPageSource(transactionRepo, 2)
+        val pageSource = TransactionPageSource(transactionRepo, 2, Filter())
         val key = pageSource.getRefreshKey(
             PagingState(
                 listOf(
@@ -36,9 +36,10 @@ class TransactionPageSourceTest {
         val transactionRepo: TransactionRepository = mock()
 
         val pageOne = testData(2)
-        whenever(transactionRepo.fetchTransactions(PageParameters(0, 2))).thenReturn(pageOne)
+        whenever(transactionRepo.fetchTransactions(PageParameters(0, 2), Filter()))
+            .thenReturn(pageOne)
 
-        val pageSource = TransactionPageSource(transactionRepo, 2)
+        val pageSource = TransactionPageSource(transactionRepo, 2, Filter())
         val loadResult = pageSource.load(Refresh(null, 2, false))
 
         assertEquals(
@@ -52,9 +53,10 @@ class TransactionPageSourceTest {
         val transactionRepo: TransactionRepository = mock()
 
         val pageTwo = testData(2)
-        whenever(transactionRepo.fetchTransactions(PageParameters(2, 2))).thenReturn(pageTwo)
+        whenever(transactionRepo.fetchTransactions(PageParameters(2, 2), Filter()))
+            .thenReturn(pageTwo)
 
-        val pageSource = TransactionPageSource(transactionRepo, 2)
+        val pageSource = TransactionPageSource(transactionRepo, 2, Filter())
         val loadResult = pageSource.load(Refresh(2, 2, false))
 
         assertEquals(
@@ -68,9 +70,10 @@ class TransactionPageSourceTest {
         val transactionRepo: TransactionRepository = mock()
 
         val lastPage = testData(2)
-        whenever(transactionRepo.fetchTransactions(PageParameters(3, 3))).thenReturn(lastPage)
+        whenever(transactionRepo.fetchTransactions(PageParameters(3, 3), Filter()))
+            .thenReturn(lastPage)
 
-        val pageSource = TransactionPageSource(transactionRepo, 3)
+        val pageSource = TransactionPageSource(transactionRepo, 3, Filter())
         val loadResult = pageSource.load(Refresh(3, 3, false))
 
         assertEquals(

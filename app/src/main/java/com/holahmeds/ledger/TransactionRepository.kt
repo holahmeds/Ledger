@@ -17,7 +17,13 @@ data class Filter(
     val until: LocalDate?,
     val category: String?,
     val transactee: String?,
-)
+) {
+    constructor() : this(null, null, null, null)
+
+    fun isActive(): Boolean {
+        return from != null && until != null && category != null && transactee != null
+    }
+}
 
 interface TransactionRepository {
     suspend fun getTransaction(transactionId: Long): Result<Transaction>

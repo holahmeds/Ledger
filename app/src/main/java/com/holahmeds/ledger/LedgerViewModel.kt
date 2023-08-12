@@ -4,7 +4,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.*
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,7 +28,7 @@ class LedgerViewModel @Inject constructor(
 ) : ViewModel() {
     private var transactionRepo: TransactionRepository? = null
 
-    private var transactionSource: PagingSource<Int, Transaction>? = null
+    private var transactionSource: TransactionPageSource? = null
     private val transactionPages: FlowMediator<PagingData<Transaction>> =
         FlowMediator(viewModelScope)
 
@@ -38,6 +41,9 @@ class LedgerViewModel @Inject constructor(
     private var error: MutableLiveData<Error> = MutableLiveData()
 
     private val isJobInProgress: FlowMediator<Boolean> = FlowMediator(viewModelScope)
+
+    private val filter: Filter = Filter()
+    private val isFilterActive: MutableLiveData<Boolean> = MutableLiveData(false)
 
     init {
         onPreferencesChanged()
@@ -107,6 +113,7 @@ class LedgerViewModel @Inject constructor(
                     setError(Error.None)
                     setTransactionRepo(res.result)
                 }
+
                 is Result.Failure -> {
                     setError(res.error)
                     setTransactionRepo(null)
@@ -118,6 +125,13 @@ class LedgerViewModel @Inject constructor(
     }
 
     fun isJobInProgress(): LiveData<Boolean> = isJobInProgress
+
+    fun setFilter(filter: Filter) {
+        transactionSource?.setFilter(filter)
+        isFilterActive.value = filter.isActive()
+    }
+
+    fun isFilterActive(): LiveData<Boolean> = isFilterActive
 
     private suspend fun updateBalance(delta: BigDecimal) {
         balance.value = balance.value?.add(delta)
@@ -139,7 +153,7 @@ class LedgerViewModel @Inject constructor(
         transactionRepo?.let {
             transactionPages.setSource(
                 Pager(PagingConfig(pageSize = TRANSACTIONS_PAGE_SIZE)) {
-                    val source = TransactionPageSource(it, TRANSACTIONS_PAGE_SIZE)
+                    val source = TransactionPageSource(it, TRANSACTIONS_PAGE_SIZE, filter)
                     transactionSource = source
                     source
                 }.flow.cachedIn(

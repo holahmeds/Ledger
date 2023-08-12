@@ -46,12 +46,6 @@ import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.net.ConnectException
 import java.net.URL
-import kotlin.collections.HashMap
-import kotlin.collections.List
-import kotlin.collections.Map
-import kotlin.collections.emptyList
-import kotlin.collections.emptyMap
-import kotlin.collections.iterator
 import kotlin.collections.set
 
 class TransactionServerRepository(
@@ -144,7 +138,7 @@ class TransactionServerRepository(
     }
 
     override suspend fun fetchTransactions(page: PageParameters?): List<Transaction> {
-        return fetchTransactions(page, Filter(null, null, null, null))
+        return fetchTransactions(page, Filter())
     }
 
     override suspend fun fetchTransactions(
