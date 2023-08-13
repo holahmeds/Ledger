@@ -21,7 +21,7 @@ data class Filter(
     constructor() : this(null, null, null, null)
 
     fun isActive(): Boolean {
-        return from != null && until != null && category != null && transactee != null
+        return from != null || until != null || category != null || transactee != null
     }
 }
 
