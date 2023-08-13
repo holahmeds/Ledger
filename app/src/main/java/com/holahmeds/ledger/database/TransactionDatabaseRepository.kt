@@ -44,25 +44,33 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
     }
 
     override suspend fun fetchTransactions(page: PageParameters?): List<Transaction> =
-        coroutineScope {
-            val transactionEntities = if (page == null) {
-                transactionDao.getAll()
-            } else {
-                transactionDao.get(page.offset, page.limit)
-            }
-            val transactionTags = if (page == null) {
-                transactionTagDao.getAll()
-            } else {
-                transactionTagDao.getTagsForTransactions(transactionEntities.map { t -> t.id })
-            }
-            makeTransactions(transactionEntities, transactionTags)
-        }
+        fetchTransactions(page, Filter())
 
     override suspend fun fetchTransactions(
         page: PageParameters?,
         filter: Filter
-    ): List<Transaction> {
-        TODO("Not yet implemented")
+    ): List<Transaction> = coroutineScope {
+        val queryBuilder = TransactionQueryBuilder()
+        if (filter.category != null) {
+            queryBuilder.addCondition(" category = ?", filter.category)
+        }
+        if (filter.transactee != null) {
+            queryBuilder.addCondition(" transactee = ?", filter.transactee)
+        }
+        if (filter.from != null) {
+            queryBuilder.addCondition(" date >= ?", filter.from.toString())
+        }
+        if (filter.until != null) {
+            queryBuilder.addCondition(" date <= ?", filter.until.toString())
+        }
+
+        val query = queryBuilder.complete(page)
+        val transactionEntities = transactionDao.get(query)
+
+        val transactionTags =
+            transactionTagDao.getTagsForTransactions(transactionEntities.map { t -> t.id })
+
+        makeTransactions(transactionEntities, transactionTags)
     }
 
     override suspend fun insertTransaction(newTransaction: NewTransaction): Result<Long> =
