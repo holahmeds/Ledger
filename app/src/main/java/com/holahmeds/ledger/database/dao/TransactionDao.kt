@@ -3,7 +3,9 @@ package com.holahmeds.ledger.database.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Update
+import androidx.sqlite.db.SupportSQLiteQuery
 import com.holahmeds.ledger.database.entities.TransactionEntity
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
@@ -15,6 +17,9 @@ interface TransactionDao {
 
     @Query("SELECT * FROM transaction_table ORDER BY date DESC, id DESC LIMIT :limit OFFSET :offset")
     suspend fun get(offset: Int, limit: Int): List<TransactionEntity>
+
+    @RawQuery
+    suspend fun get(query: SupportSQLiteQuery): List<TransactionEntity>
 
     @Query("SELECT * FROM transaction_table ORDER BY date DESC, id DESC")
     fun getAllFlow(): Flow<List<TransactionEntity>>

@@ -1,12 +1,17 @@
 package com.holahmeds.ledger.database
 
-import com.holahmeds.ledger.*
+import com.holahmeds.ledger.Error
+import com.holahmeds.ledger.Filter
+import com.holahmeds.ledger.PageParameters
+import com.holahmeds.ledger.Result
+import com.holahmeds.ledger.TransactionRepository
 import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
 import com.holahmeds.ledger.database.entities.Tag
 import com.holahmeds.ledger.database.entities.TransactionEntity
 import com.holahmeds.ledger.database.entities.TransactionTag
+import com.holahmeds.ledger.getResultOr
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -38,20 +43,32 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
         return Result.Success(transactionEntity.makeTransaction(tags))
     }
 
-    override suspend fun fetchTransactions(page: PageParameters?): List<Transaction> =
-        coroutineScope {
-            val transactionEntities = if (page == null) {
-                transactionDao.getAll()
-            } else {
-                transactionDao.get(page.offset, page.limit)
-            }
-            val transactionTags = if (page == null) {
-                transactionTagDao.getAll()
-            } else {
-                transactionTagDao.getTagsForTransactions(transactionEntities.map { t -> t.id })
-            }
-            makeTransactions(transactionEntities, transactionTags)
+    override suspend fun fetchTransactions(
+        filter: Filter,
+        page: PageParameters?
+    ): List<Transaction> = coroutineScope {
+        val queryBuilder = TransactionQueryBuilder()
+        if (filter.category != null) {
+            queryBuilder.addCondition(" category = ?", filter.category)
         }
+        if (filter.transactee != null) {
+            queryBuilder.addCondition(" transactee = ?", filter.transactee)
+        }
+        if (filter.from != null) {
+            queryBuilder.addCondition(" date >= ?", filter.from.toString())
+        }
+        if (filter.until != null) {
+            queryBuilder.addCondition(" date <= ?", filter.until.toString())
+        }
+
+        val query = queryBuilder.complete(page)
+        val transactionEntities = transactionDao.get(query)
+
+        val transactionTags =
+            transactionTagDao.getTagsForTransactions(transactionEntities.map { t -> t.id })
+
+        makeTransactions(transactionEntities, transactionTags)
+    }
 
     override suspend fun insertTransaction(newTransaction: NewTransaction): Result<Long> =
         coroutineScope {
@@ -133,7 +150,7 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
     override fun getAllTransactees(): Flow<List<String>> = transactees
 
     override suspend fun getMonthlyTotals(): List<TransactionTotals> {
-        val transactions = fetchTransactions()
+        val transactions = fetchTransactions(Filter())
         return extractMonthlyTotals(transactions)
     }
 

@@ -2,35 +2,51 @@ package com.holahmeds.ledger.server
 
 import android.util.Log
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.holahmeds.ledger.*
+import com.holahmeds.ledger.Error
+import com.holahmeds.ledger.Filter
+import com.holahmeds.ledger.PageParameters
+import com.holahmeds.ledger.Result
+import com.holahmeds.ledger.TransactionRepository
 import com.holahmeds.ledger.data.NewTransaction
 import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.data.TransactionTotals
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.auth.*
-import io.ktor.client.plugins.auth.providers.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.ResponseException
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BearerTokens
+import io.ktor.client.plugins.auth.providers.bearer
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.request
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpMethod.Companion.Delete
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpMethod.Companion.Put
-import io.ktor.serialization.jackson.*
-import kotlinx.coroutines.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.appendPathSegments
+import io.ktor.http.contentType
+import io.ktor.serialization.jackson.jackson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.net.ConnectException
 import java.net.URL
+import kotlin.collections.set
 
 class TransactionServerRepository(
-    private val jobProgressTracker: JobProgressTracker,
     private val serverURL: URL,
     private val credentialManager: CredentialManager
 ) :
@@ -38,7 +54,6 @@ class TransactionServerRepository(
     companion object {
         const val TRANSACTION_SERVER_REPOSITORY = "TransactionServerRepository"
         fun create(
-            jobProgressTracker: JobProgressTracker,
             serverURL: URL,
             credentialManager: CredentialManager
         ): Result<TransactionServerRepository> {
@@ -49,7 +64,6 @@ class TransactionServerRepository(
 
             return Result.Success(
                 TransactionServerRepository(
-                    jobProgressTracker,
                     serverURL,
                     credentialManager
                 )
@@ -96,8 +110,6 @@ class TransactionServerRepository(
         expectSuccess = true
     }
 
-    private val transactions: MutableStateFlow<List<Transaction>> = MutableStateFlow(emptyList())
-
     private val tags: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
     private val categories: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
     private val transactees: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
@@ -118,15 +130,28 @@ class TransactionServerRepository(
         }
     }
 
-    override suspend fun fetchTransactions(page: PageParameters?): List<Transaction> {
-        val queryParams = if (page == null) {
-            emptyMap()
-        } else {
-            mapOf(
-                Pair("offset", page.offset.toString()),
-                Pair("limit", page.limit.toString())
-            )
+    override suspend fun fetchTransactions(
+        filter: Filter,
+        page: PageParameters?
+    ): List<Transaction> {
+        val queryParams = HashMap<String, String>()
+        if (page != null) {
+            queryParams["offset"] = page.offset.toString()
+            queryParams["limit"] = page.limit.toString()
         }
+        if (filter.from != null) {
+            queryParams["from"] = filter.from.toString()
+        }
+        if (filter.until != null) {
+            queryParams["until"] = filter.until.toString()
+        }
+        if (filter.category != null) {
+            queryParams["category"] = filter.category
+        }
+        if (filter.transactee != null) {
+            queryParams["transactee"] = filter.transactee
+        }
+
         return request(Get, "transactions", queryParams).body()
     }
 
@@ -140,9 +165,6 @@ class TransactionServerRepository(
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to update transaction", e)
             return Result.Failure(Error.ConnectionError)
         }
-        scope.launch {
-            updateTransactions()
-        }.addToTracker(jobProgressTracker)
 
         val returnedTransaction = response.body<Transaction>()
         return Result.Success(returnedTransaction.id)
@@ -160,9 +182,6 @@ class TransactionServerRepository(
                 return Result.Failure(Error.ConnectionError)
             }
         }
-        scope.launch {
-            updateTransactions()
-        }.addToTracker(jobProgressTracker)
         return Result.Success(Unit)
     }
 
@@ -182,9 +201,6 @@ class TransactionServerRepository(
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to update transaction", e)
             return Result.Failure(Error.ConnectionError)
         }
-        scope.launch {
-            updateTransactions()
-        }.addToTracker(jobProgressTracker)
 
         return Result.Success(Unit)
     }
@@ -197,9 +213,6 @@ class TransactionServerRepository(
         } catch (e: ResponseException) {
             Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed to to delete transaction", e)
         }
-        scope.launch {
-            updateTransactions()
-        }.addToTracker(jobProgressTracker)
     }
 
     override fun getAllTags(): Flow<List<String>> {
@@ -238,16 +251,6 @@ class TransactionServerRepository(
     override fun close() {
         scope.cancel()
         client.close()
-    }
-
-    private suspend fun updateTransactions() {
-        try {
-            this.transactions.value = fetchTransactions()
-        } catch (e: ConnectException) {
-            Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed fetch transactions", e)
-        } catch (e: ResponseException) {
-            Log.e(TRANSACTION_SERVER_REPOSITORY, "Failed fetch transactions", e)
-        }
     }
 
     private suspend fun updateTags() {

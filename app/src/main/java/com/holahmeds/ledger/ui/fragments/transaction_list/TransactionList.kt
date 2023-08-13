@@ -1,7 +1,13 @@
 package com.holahmeds.ledger.ui.fragments.transaction_list
 
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -16,7 +22,6 @@ import androidx.paging.insertSeparators
 import androidx.paging.map
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.holahmeds.ledger.Error
 import com.holahmeds.ledger.LedgerViewModel
 import com.holahmeds.ledger.R
@@ -24,6 +29,7 @@ import com.holahmeds.ledger.data.Transaction
 import com.holahmeds.ledger.databinding.FragmentTransactionListBinding
 import com.holahmeds.ledger.ui.TransactionExporter
 import com.holahmeds.ledger.ui.fragments.BannerFragment
+import com.holahmeds.ledger.ui.fragments.FilterDialog
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -35,34 +41,49 @@ class TransactionList : Fragment() {
 
     private val viewModel: LedgerViewModel by activityViewModels()
 
+    lateinit var binding: FragmentTransactionListBinding
+
     lateinit var transactionExporter: TransactionExporter
 
     private var jobInProgress = false
     private var pagerLoading = false
     private val progressBarLock = ReentrantLock()
-    private var progressBar: LinearProgressIndicator? = null
 
     private var newestDate: LocalDate? = null
 
     private val menuProvider = object : MenuProvider {
+        private var filterItem: MenuItem? = null
+        private var filterActive = false
+
         override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
             menuInflater.inflate(R.menu.transaction_list_menu, menu)
+            filterItem = menu.findItem(R.id.filter)
+            updateIcon()
         }
 
         override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
             when (menuItem.itemId) {
+                R.id.filter -> {
+                    val dialog = FilterDialog()
+                    dialog.show(parentFragmentManager, "transactionlistmenu")
+                    return true
+                }
+
                 R.id.export -> {
                     transactionExporter.export()
                     return true
                 }
+
                 R.id.import_transactions -> {
                     transactionExporter.import()
                     return true
                 }
+
                 R.id.chart -> {
                     val navController = NavHostFragment.findNavController(this@TransactionList)
                     navController.navigate(R.id.chartFragment)
                 }
+
                 R.id.preferences -> {
                     val navController = NavHostFragment.findNavController(this@TransactionList)
                     navController.navigate(R.id.preferencesFragment)
@@ -70,6 +91,21 @@ class TransactionList : Fragment() {
             }
 
             return false
+        }
+
+        fun setFilterActive(active: Boolean) {
+            filterActive = active
+            updateIcon()
+        }
+
+        private fun updateIcon() {
+            val id = if (filterActive) {
+                R.drawable.filter_on
+            } else {
+                R.drawable.filter_off
+            }
+            val drawable = ResourcesCompat.getDrawable(resources, id, null)
+            filterItem?.icon = drawable
         }
     }
 
@@ -85,27 +121,36 @@ class TransactionList : Fragment() {
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(menuProvider, viewLifecycleOwner)
 
-        val binding = FragmentTransactionListBinding.inflate(inflater, container, false)
+        binding = FragmentTransactionListBinding.inflate(inflater, container, false)
 
+        transactionExporter = TransactionExporter(
+            requireContext(),
+            requireActivity().activityResultRegistry,
+            viewModel
+        )
+        lifecycle.addObserver(transactionExporter)
+
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupFilterIcon()
+        setupBalanceCard()
+        setupErrorBanner()
+        val transactionAdapter = createTransactionAdapter()
+        setupProgressBar(transactionAdapter)
+        setupTransactionList(transactionAdapter)
+        setupFab()
+    }
+
+    private fun createTransactionAdapter(): TransactionPagingAdapter {
         val onSelectTransaction = { transaction: Transaction ->
             val dialog = TransactionListMenu()
             dialog.arguments = bundleOf(Pair("TRANSACTION_ID", transaction.id))
             dialog.show(parentFragmentManager, "transactionlistmenu")
         }
-
-        viewModel.getBalance().observe(viewLifecycleOwner) { balance ->
-            binding.balance.balanceView.text = if (balance == null) {
-                ""
-            } else {
-                numberFormatter.format(balance)
-            }
-        }
-
-//        val transactionAdapter = TransactionAdapter(onSelectTransaction)
-//        val liveTransactions = viewModel.getTransactions()
-//        liveTransactions.observe(viewLifecycleOwner) { list ->
-//            transactionAdapter.setData(list)
-//        }
 
         val transactionAdapter =
             TransactionPagingAdapter(onSelectTransaction)
@@ -118,9 +163,11 @@ class TransactionList : Fragment() {
                         prev == null -> {
                             null
                         }
+
                         prev.transaction.date != next?.transaction?.date -> {
                             TransactionListItem.Subheader(prev.transaction.date)
                         }
+
                         else -> {
                             null
                         }
@@ -128,43 +175,11 @@ class TransactionList : Fragment() {
                 })
             }
         }
+        return transactionAdapter
+    }
 
-        viewModel.getError().observe(viewLifecycleOwner) { error ->
-            when (error) {
-                is Error.None -> {
-                    binding.newTransactionFab.show()
-                    val bannerFragment = childFragmentManager.findFragmentById(R.id.banner)
-                    if (bannerFragment != null) {
-                        childFragmentManager.commit {
-                            setReorderingAllowed(true)
-                            remove(bannerFragment)
-                        }
-                    }
-                }
-                is Error.Some -> {
-                    binding.newTransactionFab.hide()
-                    childFragmentManager.commit {
-                        setReorderingAllowed(true)
-                        val existingBanner = childFragmentManager.findFragmentById(R.id.banner)
-                        if (existingBanner != null) {
-                            remove(existingBanner)
-                        }
-                        add<BannerFragment>(R.id.banner)
-                    }
-                }
-            }
-        }
-
-        this.progressBar = binding.progressBar
-        viewModel.isJobInProgress().observe(viewLifecycleOwner) { isInProgress ->
-            setJobStatus(isInProgress)
-        }
-        lifecycleScope.launch {
-            transactionAdapter.loadStateFlow.collectLatest { loadStates ->
-                setPagerStatus(loadStates.refresh is LoadState.Loading || loadStates.append is LoadState.Loading || loadStates.prepend is LoadState.Loading)
-            }
-        }
-
+    private fun setupTransactionList(transactionAdapter: TransactionPagingAdapter) {
+        // Scroll to top if new item is inserted on top
         transactionAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                 val firstItem = transactionAdapter.peek(0)
@@ -189,21 +204,69 @@ class TransactionList : Fragment() {
                 }
             })
         }
+    }
 
+    private fun setupProgressBar(transactionAdapter: TransactionPagingAdapter) {
+        viewModel.isJobInProgress().observe(viewLifecycleOwner) { isInProgress ->
+            setJobStatus(isInProgress)
+        }
+        lifecycleScope.launch {
+            transactionAdapter.loadStateFlow.collectLatest { loadStates ->
+                setPagerStatus(loadStates.refresh is LoadState.Loading || loadStates.append is LoadState.Loading || loadStates.prepend is LoadState.Loading)
+            }
+        }
+    }
 
+    private fun setupFilterIcon() {
+        viewModel.isFilterActive().observe(viewLifecycleOwner) { isActive ->
+            menuProvider.setFilterActive(isActive)
+        }
+    }
+
+    private fun setupBalanceCard() {
+        viewModel.getBalance().observe(viewLifecycleOwner) { balance ->
+            binding.balance.balanceView.text = if (balance == null) {
+                ""
+            } else {
+                numberFormatter.format(balance)
+            }
+        }
+    }
+
+    private fun setupErrorBanner() {
+        viewModel.getError().observe(viewLifecycleOwner) { error ->
+            when (error) {
+                is Error.None -> {
+                    binding.newTransactionFab.show()
+                    val bannerFragment = childFragmentManager.findFragmentById(R.id.banner)
+                    if (bannerFragment != null) {
+                        childFragmentManager.commit {
+                            setReorderingAllowed(true)
+                            remove(bannerFragment)
+                        }
+                    }
+                }
+
+                is Error.Some -> {
+                    binding.newTransactionFab.hide()
+                    childFragmentManager.commit {
+                        setReorderingAllowed(true)
+                        val existingBanner = childFragmentManager.findFragmentById(R.id.banner)
+                        if (existingBanner != null) {
+                            remove(existingBanner)
+                        }
+                        add<BannerFragment>(R.id.banner)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setupFab() {
         binding.newTransactionFab.setOnClickListener {
             val navController = NavHostFragment.findNavController(this)
             navController.navigate(R.id.transactionEditor)
         }
-
-        transactionExporter = TransactionExporter(
-            requireContext(),
-            requireActivity().activityResultRegistry,
-            viewModel
-        )
-        lifecycle.addObserver(transactionExporter)
-
-        return binding.root
     }
 
     private fun setJobStatus(inProgress: Boolean) {
@@ -227,7 +290,7 @@ class TransactionList : Fragment() {
     }
 
     private fun updateProgressBarVisibility() {
-        progressBar?.visibility = when (jobInProgress || pagerLoading) {
+        binding.progressBar.visibility = when (jobInProgress || pagerLoading) {
             true -> View.VISIBLE
             else -> View.INVISIBLE
         }
