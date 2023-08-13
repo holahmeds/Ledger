@@ -28,9 +28,7 @@ data class Filter(
 interface TransactionRepository {
     suspend fun getTransaction(transactionId: Long): Result<Transaction>
 
-    suspend fun fetchTransactions(page: PageParameters? = null): List<Transaction>
-
-    suspend fun fetchTransactions(page: PageParameters? = null, filter: Filter): List<Transaction>
+    suspend fun fetchTransactions(filter: Filter, page: PageParameters? = null): List<Transaction>
 
     suspend fun insertTransaction(newTransaction: NewTransaction): Result<Long>
 

@@ -36,7 +36,7 @@ class TransactionPageSourceTest {
         val transactionRepo: TransactionRepository = mock()
 
         val pageOne = testData(2)
-        whenever(transactionRepo.fetchTransactions(PageParameters(0, 2), Filter()))
+        whenever(transactionRepo.fetchTransactions(Filter(), PageParameters(0, 2)))
             .thenReturn(pageOne)
 
         val pageSource = TransactionPageSource(transactionRepo, 2, Filter())
@@ -53,7 +53,7 @@ class TransactionPageSourceTest {
         val transactionRepo: TransactionRepository = mock()
 
         val pageTwo = testData(2)
-        whenever(transactionRepo.fetchTransactions(PageParameters(2, 2), Filter()))
+        whenever(transactionRepo.fetchTransactions(Filter(), PageParameters(2, 2)))
             .thenReturn(pageTwo)
 
         val pageSource = TransactionPageSource(transactionRepo, 2, Filter())
@@ -70,7 +70,7 @@ class TransactionPageSourceTest {
         val transactionRepo: TransactionRepository = mock()
 
         val lastPage = testData(2)
-        whenever(transactionRepo.fetchTransactions(PageParameters(3, 3), Filter()))
+        whenever(transactionRepo.fetchTransactions(Filter(), PageParameters(3, 3)))
             .thenReturn(lastPage)
 
         val pageSource = TransactionPageSource(transactionRepo, 3, Filter())

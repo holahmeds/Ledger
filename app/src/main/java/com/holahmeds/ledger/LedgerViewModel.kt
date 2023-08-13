@@ -58,7 +58,7 @@ class LedgerViewModel @Inject constructor(
         return job.await()
     }
 
-    suspend fun getTransactions(): List<Transaction>? = transactionRepo?.fetchTransactions()
+    suspend fun getTransactions(): List<Transaction>? = transactionRepo?.fetchTransactions(Filter())
 
     fun getTransactionPages() = transactionPages
 

@@ -43,12 +43,9 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
         return Result.Success(transactionEntity.makeTransaction(tags))
     }
 
-    override suspend fun fetchTransactions(page: PageParameters?): List<Transaction> =
-        fetchTransactions(page, Filter())
-
     override suspend fun fetchTransactions(
-        page: PageParameters?,
-        filter: Filter
+        filter: Filter,
+        page: PageParameters?
     ): List<Transaction> = coroutineScope {
         val queryBuilder = TransactionQueryBuilder()
         if (filter.category != null) {
@@ -153,7 +150,7 @@ class TransactionDatabaseRepository @Inject constructor(private val database: Le
     override fun getAllTransactees(): Flow<List<String>> = transactees
 
     override suspend fun getMonthlyTotals(): List<TransactionTotals> {
-        val transactions = fetchTransactions()
+        val transactions = fetchTransactions(Filter())
         return extractMonthlyTotals(transactions)
     }
 

@@ -23,7 +23,7 @@ class TransactionPageSource(
         return try {
             val offset = params.key ?: 0
             val loadSize = params.loadSize
-            val response = repository.fetchTransactions(PageParameters(offset, loadSize), filter)
+            val response = repository.fetchTransactions(filter, PageParameters(offset, loadSize))
 
             val prevKey = if (offset > 0) {
                 (offset - pageSize).coerceAtLeast(0)
